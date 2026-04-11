@@ -29,7 +29,7 @@ done
 
 # Create directory and README
 mkdir "$dir"
-cat > "$dir/README.md" <<EOF
+cat >"$dir/README.md" <<EOF
 # ${project_name}
 
 Created: $(date +%Y-%m-%d)
@@ -41,3 +41,5 @@ echo "Created: $dir"
 git add "$dir"
 git commit -m "Add lab: ${dir}"
 git push
+
+cd "$dir"
