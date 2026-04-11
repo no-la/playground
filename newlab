@@ -40,6 +40,5 @@ echo "Created: $dir"
 # Git operations
 git add "$dir"
 git commit -m "Add lab: ${dir}"
-git push
 
 cd "$dir"
