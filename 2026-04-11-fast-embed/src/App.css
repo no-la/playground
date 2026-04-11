@@ -1,0 +1,96 @@
+:root {
+  --primary: #2563eb;
+  --bg: #f8fafc;
+  --card: #ffffff;
+  --text-main: #1e293b;
+  --text-muted: #64748b;
+  --border: #e2e8f0;
+}
+
+.container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2rem;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: var(--text-main);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.title { display: flex; align-items: center; gap: 0.5rem; margin: 0; font-size: 1.75rem; }
+.subtitle { margin: 0.25rem 0 0 0; color: var(--text-muted); font-size: 0.9rem; }
+.icon-blue { color: var(--primary); }
+
+.status-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 99px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.status-badge.initializing { background: #fef3c7; color: #92400e; }
+.status-badge.ready { background: #dcfce7; color: #166534; }
+.spinner { animation: spin 1s linear infinite; }
+
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+.upload-zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 4rem 2rem;
+  background: white;
+  border: 2px dashed var(--border);
+  border-radius: 1.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 2rem;
+}
+.upload-zone:hover:not(.disabled) { border-color: var(--primary); background: #f1f5f9; }
+.upload-zone.disabled { opacity: 0.6; cursor: not-allowed; }
+.upload-icon { color: #94a3b8; margin-bottom: 1rem; }
+.hidden-input { display: none; }
+
+.results-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 2rem;
+}
+
+.vector-card {
+  background: white;
+  border-radius: 1rem;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  border: 1px solid var(--border);
+}
+
+.image-wrapper img { width: 100%; height: 240px; object-fit: cover; }
+
+.vector-details { padding: 1.25rem; }
+.section-label { font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.05em; margin-bottom: 0.75rem; }
+
+.vector-preview { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.4rem; }
+.vector-val { background: #f1f5f9; font-family: monospace; font-size: 0.75rem; padding: 0.25rem; text-align: center; border-radius: 4px; }
+.vector-meta { margin-top: 1rem; text-align: right; font-size: 0.7rem; color: var(--text-muted); }
+
+.similarity-panel {
+  margin-top: 3rem;
+  background: var(--primary);
+  color: white;
+  padding: 2.5rem;
+  border-radius: 1.5rem;
+  text-align: center;
+  box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.4);
+}
+.similarity-value { font-size: 4rem; font-weight: 900; margin: 0.75rem 0; }
+.progress-container { width: 100%; height: 10px; background: rgba(255,255,255,0.2); border-radius: 5px; overflow: hidden; }
+.progress-fill { height: 100%; background: white; transition: width 1s cubic-bezier(0.22, 1, 0.36, 1); }
+.panel-hint { margin-top: 1rem; font-size: 0.9rem; opacity: 0.9; }
