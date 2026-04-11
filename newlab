@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# newlab - Create a new lab project directory
+
+# Get project name from argument or prompt interactively
+if [[ $# -ge 1 ]]; then
+  project_name="$1"
+else
+  read -rp "Project name: " project_name
+fi
+
+if [[ -z "$project_name" ]]; then
+  echo "Error: project name cannot be empty" >&2
+  exit 1
+fi
+
+# Build base directory name
+date_prefix=$(date +%Y-%m-%d)
+base_dir="${date_prefix}-${project_name}"
+
+# Resolve conflicts by appending -n
+dir="$base_dir"
+n=1
+while [[ -e "$dir" ]]; do
+  ((n++))
+  dir="${base_dir}-${n}"
+done
+
+# Create directory and README
+mkdir "$dir"
+cat > "$dir/README.md" <<EOF
+# ${project_name}
+
+Created: $(date +%Y-%m-%d)
+EOF
+
+echo "Created: $dir"
+
+# Git operations
+git add "$dir"
+git commit -m "Add lab: ${dir}"
+git push
