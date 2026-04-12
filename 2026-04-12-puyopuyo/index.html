@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ぷよぷよ</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #1a1a2e;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      font-family: 'Segoe UI', sans-serif;
+      color: #fff;
+    }
+
+    .game-wrapper {
+      display: flex;
+      gap: 24px;
+      align-items: flex-start;
+    }
+
+    .side-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      min-width: 120px;
+    }
+
+    .panel-box {
+      background: #16213e;
+      border: 1px solid #0f3460;
+      border-radius: 10px;
+      padding: 14px;
+      text-align: center;
+    }
+
+    .panel-box h3 {
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #8892b0;
+      margin-bottom: 10px;
+    }
+
+    .panel-box .value {
+      font-size: 28px;
+      font-weight: 700;
+      color: #e2e8f0;
+    }
+
+    #next-canvas {
+      display: block;
+      margin: 0 auto;
+    }
+
+    canvas#game-canvas {
+      display: block;
+      border-radius: 8px;
+      border: 2px solid #0f3460;
+      box-shadow: 0 0 30px rgba(15, 52, 96, 0.6);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 10px;
+      background: #0f3460;
+      color: #e2e8f0;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+      letter-spacing: 1px;
+      transition: background 0.2s;
+    }
+
+    .btn:hover { background: #1a4a7a; }
+
+    #overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.75);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      border-radius: 6px;
+      gap: 14px;
+    }
+
+    #overlay h2 {
+      font-size: 28px;
+      color: #e2e8f0;
+      letter-spacing: 2px;
+    }
+
+    #overlay p {
+      color: #8892b0;
+      font-size: 13px;
+    }
+
+    .canvas-container {
+      position: relative;
+    }
+
+    .controls {
+      background: #16213e;
+      border: 1px solid #0f3460;
+      border-radius: 10px;
+      padding: 14px;
+      font-size: 11px;
+      color: #8892b0;
+      line-height: 2;
+    }
+
+    .controls h3 {
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      font-size: 11px;
+    }
+
+    .key {
+      display: inline-block;
+      background: #0f3460;
+      color: #e2e8f0;
+      border-radius: 4px;
+      padding: 1px 6px;
+      font-size: 11px;
+      margin-right: 4px;
+    }
+  </style>
+</head>
+<body>
+<div class="game-wrapper">
+  <!-- Left panel -->
+  <div class="side-panel">
+    <div class="panel-box">
+      <h3>Score</h3>
+      <div class="value" id="score-display">0</div>
+    </div>
+    <div class="panel-box">
+      <h3>Level</h3>
+      <div class="value" id="level-display">1</div>
+    </div>
+    <div class="panel-box">
+      <h3>連鎖</h3>
+      <div class="value" id="chain-display">0</div>
+    </div>
+  </div>
+
+  <!-- Game board -->
+  <div class="canvas-container">
+    <canvas id="game-canvas"></canvas>
+    <div id="overlay">
+      <h2>ぷよぷよ</h2>
+      <p>← → で移動 &nbsp; Z/X で回転 &nbsp; ↓ で落下</p>
+      <button class="btn" id="start-btn">スタート</button>
+    </div>
+  </div>
+
+  <!-- Right panel -->
+  <div class="side-panel">
+    <div class="panel-box">
+      <h3>Next</h3>
+      <canvas id="next-canvas" width="60" height="120"></canvas>
+    </div>
+    <button class="btn" id="restart-btn">リスタート</button>
+    <div class="controls">
+      <h3>操作</h3>
+      <div><span class="key">←</span><span class="key">→</span> 移動</div>
+      <div><span class="key">Z</span> 左回転</div>
+      <div><span class="key">X</span> 右回転</div>
+      <div><span class="key">↓</span> 高速落下</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const COLS = 6;
+const ROWS = 13; // 12 visible + 1 hidden top row
+const CELL = 48;
+const COLORS = ['#e74c3c', '#3498db', '#2ecc71', '#f39c12', '#9b59b6'];
+const COLOR_NAMES = ['red', 'blue', 'green', 'yellow', 'purple'];
+
+const canvas = document.getElementById('game-canvas');
+const ctx = canvas.getContext('2d');
+canvas.width = COLS * CELL;
+canvas.height = (ROWS - 1) * CELL; // row 0 is hidden
+
+const nextCanvas = document.getElementById('next-canvas');
+const nextCtx = nextCanvas.getContext('2d');
+
+let board, currentPair, nextPair, score, level, chainCount, gameRunning, gameOver, dropInterval, dropTimer;
+
+// Pair: two puyos. pivot is bottom, satellite is top initially.
+// rotation: 0=top, 1=right, 2=bottom, 3=left (satellite relative to pivot)
+function randomColor() {
+  return Math.floor(Math.random() * COLORS.length);
+}
+
+function newPair() {
+  return {
+    // pivot position (col, row in board coords including hidden row)
+    col: Math.floor(COLS / 2) - 1,
+    row: 1, // start just below hidden row
+    rotation: 0, // satellite is above pivot
+    colorA: randomColor(), // pivot color
+    colorB: randomColor(), // satellite color
+  };
+}
+
+function getSatellitePos(pair) {
+  const { col, row, rotation } = pair;
+  const offsets = [[0, -1], [1, 0], [0, 1], [-1, 0]];
+  const [dc, dr] = offsets[rotation];
+  return { col: col + dc, row: row + dr };
+}
+
+function initGame() {
+  board = Array.from({ length: ROWS }, () => Array(COLS).fill(null));
+  score = 0;
+  level = 1;
+  chainCount = 0;
+  gameOver = false;
+  gameRunning = false;
+  nextPair = newPair();
+  currentPair = null;
+  updateUI();
+}
+
+function spawnPair() {
+  currentPair = nextPair;
+  currentPair.col = Math.floor(COLS / 2) - 1;
+  currentPair.row = 1;
+  currentPair.rotation = 0;
+  nextPair = newPair();
+
+  // Check collision on spawn
+  const sat = getSatellitePos(currentPair);
+  if (
+    board[currentPair.row][currentPair.col] !== null ||
+    board[sat.row]?.[sat.col] !== null
+  ) {
+    endGame();
+  }
+}
+
+function canMove(pair, dc, dr, rotation) {
+  const testPair = { ...pair, col: pair.col + dc, row: pair.row + dr, rotation: rotation ?? pair.rotation };
+  const sat = getSatellitePos(testPair);
+
+  const inBounds = (c, r) => c >= 0 && c < COLS && r >= 0 && r < ROWS;
+  if (!inBounds(testPair.col, testPair.row)) return false;
+  if (!inBounds(sat.col, sat.row)) return false;
+  if (board[testPair.row][testPair.col] !== null) return false;
+  if (board[sat.row][sat.col] !== null) return false;
+  return true;
+}
+
+function lockPair() {
+  const sat = getSatellitePos(currentPair);
+  board[currentPair.row][currentPair.col] = currentPair.colorA;
+  board[sat.row][sat.col] = currentPair.colorB;
+  currentPair = null;
+  applyGravityAndCheck();
+}
+
+function applyGravityAndCheck() {
+  applyGravity();
+  setTimeout(() => {
+    const popped = checkAndPop();
+    if (popped) {
+      chainCount++;
+      updateUI();
+      draw();
+      setTimeout(() => applyGravityAndCheck(), 400);
+    } else {
+      chainCount = 0;
+      updateUI();
+      spawnPair();
+      gameRunning = true;
+    }
+  }, 200);
+}
+
+function applyGravity() {
+  for (let col = 0; col < COLS; col++) {
+    let writeRow = ROWS - 1;
+    for (let row = ROWS - 1; row >= 0; row--) {
+      if (board[row][col] !== null) {
+        board[writeRow][col] = board[row][col];
+        if (writeRow !== row) board[row][col] = null;
+        writeRow--;
+      }
+    }
+    for (let row = writeRow; row >= 0; row--) {
+      board[row][col] = null;
+    }
+  }
+}
+
+function checkAndPop() {
+  const visited = Array.from({ length: ROWS }, () => Array(COLS).fill(false));
+  const toDelete = [];
+
+  const floodFill = (r, c, color) => {
+    const stack = [[r, c]];
+    const group = [];
+    while (stack.length > 0) {
+      const [cr, cc] = stack.pop();
+      if (cr < 0 || cr >= ROWS || cc < 0 || cc >= COLS) continue;
+      if (visited[cr][cc] || board[cr][cc] !== color) continue;
+      visited[cr][cc] = true;
+      group.push([cr, cc]);
+      stack.push([cr - 1, cc], [cr + 1, cc], [cr, cc - 1], [cr, cc + 1]);
+    }
+    return group;
+  };
+
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      if (board[r][c] !== null && !visited[r][c]) {
+        const group = floodFill(r, c, board[r][c]);
+        if (group.length >= 4) {
+          toDelete.push(...group);
+        }
+      }
+    }
+  }
+
+  if (toDelete.length === 0) return false;
+
+  // Score calculation
+  const chain = chainCount + 1;
+  const chainBonus = chain === 1 ? 0 : chain === 2 ? 8 : chain === 3 ? 16 : chain * 32;
+  const colorSet = new Set(toDelete.map(([r, c]) => board[r][c]));
+  const colorBonus = (colorSet.size - 1) * 3;
+  const groupBonus = Math.max(0, toDelete.length - 4) * 2;
+  const bonus = Math.max(1, chainBonus + colorBonus + groupBonus);
+  score += 10 * toDelete.length * bonus * level;
+
+  // Level up every 500 points
+  level = Math.floor(score / 500) + 1;
+
+  for (const [r, c] of toDelete) {
+    board[r][c] = null;
+  }
+
+  return true;
+}
+
+function endGame() {
+  gameRunning = false;
+  gameOver = true;
+  showOverlay('ゲームオーバー', `スコア: ${score}`, 'もう一度');
+}
+
+function updateUI() {
+  document.getElementById('score-display').textContent = score;
+  document.getElementById('level-display').textContent = level;
+  document.getElementById('chain-display').textContent = chainCount;
+}
+
+// ---- Drawing ----
+
+function drawPuyo(ctx, color, x, y, size, alpha = 1) {
+  const r = size / 2;
+  ctx.save();
+  ctx.globalAlpha = alpha;
+
+  // Main circle
+  const grad = ctx.createRadialGradient(x + r * 0.6, y + r * 0.4, r * 0.1, x + r, y + r, r);
+  grad.addColorStop(0, lighten(COLORS[color], 60));
+  grad.addColorStop(1, COLORS[color]);
+  ctx.beginPath();
+  ctx.arc(x + r, y + r, r - 2, 0, Math.PI * 2);
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  // Shine
+  ctx.beginPath();
+  ctx.arc(x + r * 0.65, y + r * 0.55, r * 0.28, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(255,255,255,0.55)';
+  ctx.fill();
+
+  // Eyes
+  ctx.fillStyle = '#1a1a2e';
+  ctx.beginPath();
+  ctx.arc(x + r * 0.72, y + r * 0.85, r * 0.12, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(x + r * 1.28, y + r * 0.85, r * 0.12, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
+}
+
+function lighten(hex, amount) {
+  const num = parseInt(hex.slice(1), 16);
+  const r = Math.min(255, (num >> 16) + amount);
+  const g = Math.min(255, ((num >> 8) & 0xff) + amount);
+  const b = Math.min(255, (num & 0xff) + amount);
+  return `rgb(${r},${g},${b})`;
+}
+
+function draw() {
+  // Background
+  ctx.fillStyle = '#0d1117';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Grid lines
+  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+  ctx.lineWidth = 1;
+  for (let c = 0; c <= COLS; c++) {
+    ctx.beginPath();
+    ctx.moveTo(c * CELL, 0);
+    ctx.lineTo(c * CELL, canvas.height);
+    ctx.stroke();
+  }
+  for (let r = 0; r <= ROWS - 1; r++) {
+    ctx.beginPath();
+    ctx.moveTo(0, r * CELL);
+    ctx.lineTo(canvas.width, r * CELL);
+    ctx.stroke();
+  }
+
+  // Board puyos (skip row 0 which is hidden)
+  for (let r = 1; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      if (board[r][c] !== null) {
+        drawPuyo(ctx, board[r][c], c * CELL, (r - 1) * CELL, CELL);
+      }
+    }
+  }
+
+  // Current pair
+  if (currentPair) {
+    const sat = getSatellitePos(currentPair);
+
+    // Draw ghost
+    let ghostRow = currentPair.row;
+    while (canMove({ ...currentPair, row: ghostRow + 1 }, 0, 0)) ghostRow++;
+    if (ghostRow !== currentPair.row) {
+      const ghostPair = { ...currentPair, row: ghostRow };
+      const ghostSat = getSatellitePos(ghostPair);
+      if (ghostPair.row >= 1) drawPuyo(ctx, ghostPair.colorA, ghostPair.col * CELL, (ghostPair.row - 1) * CELL, CELL, 0.2);
+      if (ghostSat.row >= 1) drawPuyo(ctx, ghostPair.colorB, ghostSat.col * CELL, (ghostSat.row - 1) * CELL, CELL, 0.2);
+    }
+
+    if (currentPair.row >= 1) drawPuyo(ctx, currentPair.colorA, currentPair.col * CELL, (currentPair.row - 1) * CELL, CELL);
+    if (sat.row >= 1) drawPuyo(ctx, currentPair.colorB, sat.col * CELL, (sat.row - 1) * CELL, CELL);
+  }
+
+  // Next
+  drawNext();
+}
+
+function drawNext() {
+  nextCtx.fillStyle = '#0d1117';
+  nextCtx.fillRect(0, 0, nextCanvas.width, nextCanvas.height);
+  if (!nextPair) return;
+  const s = 52;
+  const ox = (nextCanvas.width - s) / 2;
+  drawPuyo(nextCtx, nextPair.colorB, ox, 4, s);
+  drawPuyo(nextCtx, nextPair.colorA, ox, 4 + s + 4, s);
+}
+
+// ---- Game loop ----
+
+let lastTime = 0;
+let accumulator = 0;
+
+function getDropMs() {
+  return Math.max(100, 800 - (level - 1) * 60);
+}
+
+function gameLoop(timestamp) {
+  if (!gameOver) requestAnimationFrame(gameLoop);
+  if (!gameRunning) return;
+
+  const dt = timestamp - lastTime;
+  lastTime = timestamp;
+  accumulator += dt;
+
+  if (accumulator >= getDropMs()) {
+    accumulator = 0;
+    if (currentPair) {
+      if (canMove(currentPair, 0, 1)) {
+        currentPair.row++;
+      } else {
+        gameRunning = false;
+        lockPair();
+      }
+    }
+  }
+
+  draw();
+}
+
+// ---- Input ----
+
+document.addEventListener('keydown', (e) => {
+  if (!gameRunning || !currentPair) return;
+
+  switch (e.key) {
+    case 'ArrowLeft':
+      e.preventDefault();
+      if (canMove(currentPair, -1, 0)) currentPair.col--;
+      break;
+    case 'ArrowRight':
+      e.preventDefault();
+      if (canMove(currentPair, 1, 0)) currentPair.col++;
+      break;
+    case 'ArrowDown':
+      e.preventDefault();
+      accumulator = getDropMs(); // trigger immediate drop
+      break;
+    case 'z': case 'Z': {
+      e.preventDefault();
+      const newRot = (currentPair.rotation + 3) % 4;
+      if (canMove(currentPair, 0, 0, newRot)) {
+        currentPair.rotation = newRot;
+      } else if (canMove(currentPair, 1, 0, newRot)) {
+        currentPair.col++;
+        currentPair.rotation = newRot;
+      } else if (canMove(currentPair, -1, 0, newRot)) {
+        currentPair.col--;
+        currentPair.rotation = newRot;
+      }
+      break;
+    }
+    case 'x': case 'X': {
+      e.preventDefault();
+      const newRot = (currentPair.rotation + 1) % 4;
+      if (canMove(currentPair, 0, 0, newRot)) {
+        currentPair.rotation = newRot;
+      } else if (canMove(currentPair, 1, 0, newRot)) {
+        currentPair.col++;
+        currentPair.rotation = newRot;
+      } else if (canMove(currentPair, -1, 0, newRot)) {
+        currentPair.col--;
+        currentPair.rotation = newRot;
+      }
+      break;
+    }
+  }
+
+  draw();
+});
+
+// ---- Overlay ----
+
+function showOverlay(title, subtitle, btnText) {
+  const overlay = document.getElementById('overlay');
+  overlay.innerHTML = `
+    <h2>${title}</h2>
+    <p>${subtitle}</p>
+    <button class="btn" id="start-btn">${btnText}</button>
+  `;
+  overlay.style.display = 'flex';
+  document.getElementById('start-btn').addEventListener('click', startGame);
+}
+
+function hideOverlay() {
+  document.getElementById('overlay').style.display = 'none';
+}
+
+function startGame() {
+  initGame();
+  hideOverlay();
+  spawnPair();
+  gameRunning = true;
+  lastTime = performance.now();
+  accumulator = 0;
+  requestAnimationFrame(gameLoop);
+}
+
+document.getElementById('start-btn').addEventListener('click', startGame);
+document.getElementById('restart-btn').addEventListener('click', () => {
+  gameOver = true;
+  gameRunning = false;
+  startGame();
+});
+
+// Init
+initGame();
+draw();
+</script>
+</body>
+</html>
