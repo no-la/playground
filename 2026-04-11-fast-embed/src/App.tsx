@@ -1,16 +1,18 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { pipeline, env, cos_sim, RawImage } from '@xenova/transformers';
+import { useState, useEffect, useRef } from 'react';
+import { pipeline, env, cos_sim, RawImage, ImageFeatureExtractionPipeline } from '@xenova/transformers';
 import { Upload, Image as ImageIcon, CheckCircle2, Loader2 } from 'lucide-react';
 import './App.css';
 
 // モデルのダウンロード先をHugging Faceに設定
 env.allowLocalModels = false;
 
+type ImageData = { url: string; vector: number[] };
+
 const App = () => {
   const [status, setStatus] = useState('initializing'); // 'initializing' | 'ready' | 'processing'
-  const [data, setData] = useState([]); // { url: string, vector: number[] }[]
-  const [similarity, setSimilarity] = useState(null);
-  const extractor = useRef(null);
+  const [data, setData] = useState<ImageData[]>([]);
+  const [similarity, setSimilarity] = useState<number | null>(null);
+  const extractor = useRef<ImageFeatureExtractionPipeline | null>(null);
 
   // 1. モデルの初期化 (image-feature-extraction を明示)
   useEffect(() => {
@@ -28,22 +30,22 @@ const App = () => {
   }, []);
 
   // 2. 画像のベクトル化処理
-  const handleImageUpload = async (e) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !extractor.current) return;
 
     setStatus('processing');
     const url = URL.createObjectURL(file);
-    
+
     try {
       // 画像をONNX Runtimeが理解できるRawImage形式に変換
       const image = await RawImage.fromURL(url);
-      
+
       // 特徴量（Embedding）の抽出
       const output = await extractor.current(image);
-      
+
       // Float32Arrayを通常の配列に変換
-      const vector = Array.from(output.data);
+      const vector = Array.from(output.data) as number[];
 
       // 最新の2枚を保持
       const newData = [...data, { url, vector }].slice(-2);
@@ -56,7 +58,7 @@ const App = () => {
       }
     } catch (error) {
       console.error("Processing Error:", error);
-      alert("ベクトル化中にエラーが発生しました: " + error.message);
+      alert("ベクトル化中にエラーが発生しました: " + (error as Error).message);
     } finally {
       setStatus('ready');
     }
@@ -86,12 +88,12 @@ const App = () => {
           <span className="upload-text">
             {status === 'processing' ? 'Calculating Vectors...' : 'Click to Vectorize Image'}
           </span>
-          <input 
-            type="file" 
-            className="hidden-input" 
-            accept="image/*" 
-            onChange={handleImageUpload} 
-            disabled={status !== 'ready'} 
+          <input
+            type="file"
+            className="hidden-input"
+            accept="image/*"
+            onChange={handleImageUpload}
+            disabled={status !== 'ready'}
           />
         </label>
 
@@ -122,8 +124,8 @@ const App = () => {
               {(similarity * 100).toFixed(2)}%
             </div>
             <div className="progress-container">
-              <div 
-                className="progress-fill" 
+              <div
+                className="progress-fill"
                 style={{ width: `${Math.max(0, similarity * 100)}%` }}
               ></div>
             </div>
