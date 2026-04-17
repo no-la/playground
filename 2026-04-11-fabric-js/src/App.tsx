@@ -1,9 +1,15 @@
 import React, { useEffect, useRef } from 'react';
 import * as fabric from 'fabric';
 
+type PanCanvas = fabric.Canvas & {
+  isDragging: boolean;
+  lastPosX: number;
+  lastPosY: number;
+};
+
 const App: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const fabricCanvasRef = useRef<fabric.Canvas | null>(null);
+  const fabricCanvasRef = useRef<PanCanvas | null>(null);
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -14,7 +20,7 @@ const App: React.FC = () => {
       height: window.innerHeight,
       backgroundColor: '#1a1a1a', // PureRef風のダーク背景
       selection: true,            // 複数選択を許可
-    });
+    }) as PanCanvas;
 
     // 2. ズーム機能 (マウスホイール)
     canvas.on('mouse:wheel', (opt) => {
@@ -23,14 +29,14 @@ const App: React.FC = () => {
       zoom *= 0.999 ** delta;
       if (zoom > 20) zoom = 20;
       if (zoom < 0.01) zoom = 0.01;
-      canvas.zoomToPoint({ x: opt.e.offsetX, y: opt.e.offsetY }, zoom);
+      canvas.zoomToPoint(new fabric.Point(opt.e.offsetX, opt.e.offsetY), zoom);
       opt.e.preventDefault();
       opt.e.stopPropagation();
     });
 
     // 3. パン（画面移動）機能: 右クリックドラッグ
     canvas.on('mouse:down', (opt) => {
-      const evt = opt.e;
+      const evt = opt.e as MouseEvent;
       // 右クリック(button === 2)でパン開始
       if (evt.button === 2) {
         canvas.isDragging = true;
@@ -42,7 +48,7 @@ const App: React.FC = () => {
 
     canvas.on('mouse:move', (opt) => {
       if (canvas.isDragging) {
-        const e = opt.e;
+        const e = opt.e as MouseEvent;
         const vpt = canvas.viewportTransform;
         vpt[4] += e.clientX - canvas.lastPosX;
         vpt[5] += e.clientY - canvas.lastPosY;
