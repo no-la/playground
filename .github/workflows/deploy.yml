@@ -43,6 +43,12 @@ jobs:
           VITE_BASE: /playground/2026-04-11-fast-embed/
         run: pnpm install && pnpm build
 
+      - name: Build 2026-04-21-live2d-on-browser
+        working-directory: 2026-04-21-live2d-on-browser
+        env:
+          NEXT_PUBLIC_BASE_PATH: /playground/2026-04-21-live2d-on-browser
+        run: npm install && npm run build
+
       - name: Build 2026-04-11-react-flow
         working-directory: 2026-04-11-react-flow
         env:
@@ -64,6 +70,7 @@ jobs:
           cp -r 2026-04-11-fast-embed/dist/. _site/2026-04-11-fast-embed/
           cp -r 2026-04-11-react-flow/dist/. _site/2026-04-11-react-flow/
           cp -r 2026-04-11-react-flow-2/dist/. _site/2026-04-11-react-flow-2/
+          cp -r 2026-04-21-live2d-on-browser/out/. _site/2026-04-21-live2d-on-browser/
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
