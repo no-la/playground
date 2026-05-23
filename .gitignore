@@ -1,0 +1,15 @@
+# macOS metadata
+._*
+.DS_Store
+
+# Dependencies
+node_modules
+
+# Build outputs
+dist
+.next
+out
+
+# Misc
+*.bak
+*.local
