@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Support both `source ./newlab` and `./newlab`
+_exit() { return "${1:-0}" 2>/dev/null || exit "${1:-0}"; }
+
 # newlab - Create a new lab project directory
 
 # Get project name from argument or prompt interactively
@@ -12,7 +15,7 @@ fi
 
 if [[ -z "$project_name" ]]; then
   echo "Error: project name cannot be empty" >&2
-  exit 1
+  _exit 1
 fi
 
 # Build base directory name
@@ -26,6 +29,14 @@ while [[ -e "$dir" ]]; do
   ((n++))
   dir="${base_dir}-${n}"
 done
+
+# Confirm before creating
+echo "Create: $dir"
+read -rp "Proceed? [y/N] " confirm
+if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
+  echo "Aborted."
+  _exit 0
+fi
 
 # Create directory and README
 mkdir "$dir"
