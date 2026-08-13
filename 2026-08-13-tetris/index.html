@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#090d18">
+  <title>BLOCKS — Guideline-style falling blocks</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <div>
+        <p class="eyebrow">FALLING BLOCKS / 2026</p>
+        <h1>BLOCKS</h1>
+      </div>
+      <button id="pause" class="icon-button" type="button" aria-label="一時停止">Ⅱ</button>
+    </header>
+
+    <section class="game-layout">
+      <aside class="rail rail-left">
+        <div class="panel piece-panel"><span>HOLD</span><canvas id="hold" width="112" height="88"></canvas></div>
+        <div class="stat"><span>SCORE</span><strong id="score">0</strong></div>
+        <div class="stat-row">
+          <div class="stat"><span>LEVEL</span><strong id="level">1</strong></div>
+          <div class="stat"><span>LINES</span><strong id="lines">0</strong></div>
+        </div>
+      </aside>
+
+      <div class="board-wrap">
+        <canvas id="board" width="300" height="600" aria-label="ゲーム盤"></canvas>
+        <div id="overlay" class="overlay">
+          <p class="eyebrow">MODERN RULESET</p>
+          <h2 id="overlay-title">READY?</h2>
+          <p id="overlay-copy">SRS · 7-BAG · HOLD · T-SPINS</p>
+          <button id="start" class="primary" type="button">START GAME</button>
+        </div>
+        <div id="callout" class="callout" aria-live="polite"></div>
+      </div>
+
+      <aside class="rail rail-right">
+        <div class="panel next-panel"><span>NEXT</span><canvas id="next" width="112" height="360"></canvas></div>
+        <div class="desktop-help">
+          <p><kbd>←</kbd><kbd>→</kbd> MOVE</p><p><kbd>↓</kbd> SOFT DROP</p>
+          <p><kbd>Z</kbd><kbd>X</kbd> ROTATE</p><p><kbd>SPACE</kbd> HARD DROP</p>
+          <p><kbd>C</kbd> HOLD</p><p><kbd>P</kbd> PAUSE</p>
+        </div>
+      </aside>
+    </section>
+
+    <section class="touch-controls" aria-label="タッチ操作">
+      <div class="touch-group">
+        <button data-action="left" aria-label="左へ移動">←</button>
+        <button data-action="right" aria-label="右へ移動">→</button>
+        <button data-action="soft" aria-label="ソフトドロップ">↓</button>
+      </div>
+      <div class="touch-group">
+        <button data-action="ccw" aria-label="左回転">↶</button>
+        <button data-action="cw" aria-label="右回転">↷</button>
+        <button data-action="hold" class="small-label" aria-label="ホールド">HOLD</button>
+        <button data-action="hard" class="drop" aria-label="ハードドロップ">⇊</button>
+      </div>
+    </section>
+  </main>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

@@ -66,6 +66,7 @@ jobs:
           mkdir -p _site
           cp index.html _site/
           cp -r 2026-04-12-puyopuyo _site/
+          cp -r 2026-08-13-tetris _site/
           cp -r 2026-04-11-fabric-js/dist/. _site/2026-04-11-fabric-js/
           cp -r 2026-04-11-fast-embed/dist/. _site/2026-04-11-fast-embed/
           cp -r 2026-04-11-react-flow/dist/. _site/2026-04-11-react-flow/
