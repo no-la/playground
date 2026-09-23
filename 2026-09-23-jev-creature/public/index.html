@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#100f1a">
+  <title>言葉喰い — Jevで育つ謎の生物</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="grain" aria-hidden="true"></div>
+  <main>
+    <header class="masthead">
+      <div><p class="eyebrow">JEV SPECIMEN / LIVE</p><h1>言葉喰い</h1></div>
+      <button id="reset" class="ghost-button" type="button">新しい卵</button>
+    </header>
+    <section class="habitat" id="habitat" data-habitat="void">
+      <div class="orb orb-one"></div><div class="orb orb-two"></div><div class="stars" aria-hidden="true"></div>
+      <div class="specimen-label"><span>SPECIMEN</span><strong id="specimen-id">#000</strong></div>
+      <div class="creature-wrap">
+        <svg class="creature" viewBox="0 0 420 360" role="img" aria-label="あなたの言葉で育つ謎の生物">
+          <defs>
+            <filter id="glow"><feGaussianBlur stdDeviation="9" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            <radialGradient id="body-gradient" cx="35%" cy="25%"><stop offset="0" class="body-light"/><stop offset="1" class="body-dark"/></radialGradient>
+          </defs>
+          <g class="shadow"><ellipse cx="210" cy="315" rx="98" ry="18"/></g>
+          <g class="limbs back-limbs"><path d="M138 240 Q82 269 79 313"/><path d="M282 240 Q338 269 341 313"/></g>
+          <g class="horns"><path class="horn" d="M157 105 Q119 30 188 86"/><path class="horn" d="M263 105 Q301 30 232 86"/><path class="antenna" d="M210 85 Q212 37 235 25"/><circle class="antenna-tip" cx="235" cy="25" r="7"/></g>
+          <path class="body" d="M210 75 C117 70 88 151 111 237 C129 305 291 305 309 237 C332 151 303 70 210 75Z"/>
+          <g class="face">
+            <g class="eye"><ellipse cx="168" cy="166" rx="25" ry="31"/><circle cx="171" cy="170" r="10"/></g>
+            <g class="eye"><ellipse cx="252" cy="166" rx="25" ry="31"/><circle cx="249" cy="170" r="10"/></g>
+            <path class="mouth" d="M181 221 Q210 242 239 221"/>
+            <circle class="cheek" cx="151" cy="216" r="11"/><circle class="cheek" cx="269" cy="216" r="11"/>
+          </g>
+          <g class="limbs front-limbs"><path d="M151 257 Q120 291 132 321"/><path d="M269 257 Q300 291 288 321"/></g>
+        </svg>
+      </div>
+      <div class="identity"><p id="stage">まだ名もない卵</p><h2 id="name">ノクスミュ</h2><p id="nature">虚空に棲む、秘密めいた気質</p></div>
+    </section>
+    <section class="console">
+      <div class="feed-panel">
+        <p class="section-number">01 / FEED</p><h2>言葉を食べさせる</h2>
+        <p class="lede">今日あったこと、コード、詩、愚痴。どんな文章も、この生物の遺伝子になります。</p>
+        <form id="feed-form">
+          <label for="food">今日の餌</label>
+          <textarea id="food" maxlength="4000" placeholder="例：深夜、テストが全部緑になった。窓の外では知らない鳥が笑っている。" required></textarea>
+          <div class="form-footer"><span id="char-count">0 / 4000</span><button id="feed-button" class="feed-button" type="submit"><span>食べさせる</span><span aria-hidden="true">↗</span></button></div>
+        </form>
+        <div id="status" class="status" role="status" aria-live="polite"></div>
+      </div>
+      <div class="genes-panel">
+        <p class="section-number">02 / GENES</p><div class="genes-heading"><h2>現在の遺伝子</h2><span id="generation">GEN. 00</span></div>
+        <div class="genes" id="genes"></div>
+        <div class="metadata"><div><span>生息域</span><strong id="habitat-label">虚空</strong></div><div><span>気質</span><strong id="temperament-label">秘密めいた</strong></div><div><span>変異</span><strong id="mutation-label">0回</strong></div></div>
+      </div>
+    </section>
+    <section class="chronicle">
+      <div class="chronicle-head"><div><p class="section-number">03 / CHRONICLE</p><h2>成長記録</h2></div><p>言葉は消えても、形に残る。</p></div>
+      <div id="history" class="history"><p class="empty">最初の言葉を待っています。</p></div>
+    </section>
+  </main>
+  <footer><span>POWERED BY JEV</span><span>TYPE SAFE, CREATURE UNKNOWN.</span></footer>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
