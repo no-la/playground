@@ -418,15 +418,31 @@ async function applyChoice(p, c, pair, set, run, token) {
   return true;
 }
 function Controls({ seed, setSeed, start, pause, paused }) {
+  const randomizeSeed = () => {
+    const value = new Uint32Array(1);
+    crypto.getRandomValues(value);
+    setSeed(value[0] % 1_000_000_000);
+  };
   return (
     <div className="controls">
       <label>
         SEQUENCE SEED
-        <input
-          type="number"
-          value={seed}
-          onChange={(e) => setSeed(+e.target.value)}
-        />
+        <span className="seed-row">
+          <input
+            type="number"
+            value={seed}
+            onChange={(e) => setSeed(+e.target.value)}
+          />
+          <button
+            type="button"
+            className="random-seed"
+            onClick={randomizeSeed}
+            aria-label="SEEDをランダム生成"
+            title="SEEDをランダム生成"
+          >
+            RANDOM
+          </button>
+        </span>
       </label>
       <button className="start" onClick={start}>
         START RUN
