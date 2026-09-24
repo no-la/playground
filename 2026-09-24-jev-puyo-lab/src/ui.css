@@ -884,6 +884,95 @@ header button.active {
   }
 }
 
+/* Keep useful controls visible whenever the viewport has honest room for them. */
+.always-settings {
+  display: none;
+}
+.always-trace {
+  display: none;
+}
+
+@media (min-width: 900px) {
+  .solo-settings {
+    position: fixed;
+    z-index: 6;
+    top: 174px;
+    left: max(18px, calc(50vw - 500px));
+    display: block;
+    width: 250px;
+  }
+  .solo-settings-toggle {
+    display: none;
+  }
+  .solo-settings .panel {
+    width: 100%;
+    margin: 0;
+  }
+  .always-trace {
+    position: fixed;
+    z-index: 6;
+    top: 174px;
+    right: max(18px, calc(50vw - 500px));
+    width: 250px;
+    display: block;
+    padding: 16px;
+    background: rgba(7, 24, 72, 0.92);
+    border: 3px solid #fff;
+    border-radius: 14px;
+    box-shadow:
+      0 4px 0 #1653a3,
+      inset 0 0 0 2px #4be9ff;
+  }
+  .always-trace h2 {
+    margin: 5px 0 12px;
+    font-size: 18px;
+  }
+  .always-trace .trace-row {
+    grid-template-columns: 32px 1fr;
+    padding: 8px 2px;
+    font-size: 9px;
+  }
+}
+
+@media (min-width: 1300px) {
+  .battle-settings {
+    position: fixed;
+    z-index: 6;
+    top: 174px;
+    display: block;
+    width: 230px;
+  }
+  .battle-settings-toggle {
+    display: none;
+  }
+  .p1-settings {
+    left: max(14px, calc(50vw - 620px));
+  }
+  .p2-settings {
+    right: max(14px, calc(50vw - 620px));
+  }
+  .battle-settings .panel {
+    width: 100%;
+    margin: 0;
+    padding: 12px;
+  }
+  .battle-settings .panel select {
+    margin-bottom: 11px;
+    padding: 8px;
+  }
+  .battle-settings .note {
+    min-height: 20px;
+    margin-block: 6px;
+  }
+  .battle-settings .metrics > div {
+    padding: 10px 0;
+  }
+  .battle-settings .decision {
+    margin-top: 10px;
+    padding: 11px;
+  }
+}
+
 @media (max-width: 620px) {
   main {
     width: calc(100% - 12px);

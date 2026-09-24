@@ -497,6 +497,23 @@ function Trace({ logs }) {
     </>
   );
 }
+function TracePreview({ logs }) {
+  return (
+    <aside className="always-trace">
+      <p className="kicker">RECENT DECISIONS</p>
+      <h2>直近の判断</h2>
+      {logs.length === 0 && (
+        <p className="empty-trace">開始するとここに表示されます</p>
+      )}
+      {logs.slice(0, 6).map((l, i) => (
+        <p className="trace-row" key={i}>
+          <b>{l.n}</b>
+          <span>{l.text}</span>
+        </p>
+      ))}
+    </aside>
+  );
+}
 function Solo() {
   const [seed, setSeed] = useState(4242),
     [p, setP] = useState(fresh("p1")),
@@ -556,8 +573,12 @@ function Solo() {
       <section className="solo-game">
         <Board p={p} label="1P" />
       </section>
+      <aside className="always-settings solo-settings">
+        <PlayerPanel p={p} set={setP} label="1P" />
+      </aside>
+      <TracePreview logs={logs} />
       <button
-        className="dock-button settings-toggle"
+        className="dock-button settings-toggle solo-settings-toggle"
         onClick={() => setSettingsOpen(true)}
       >
         AI SETTINGS
@@ -695,8 +716,14 @@ function Battle() {
           <Board p={b} label="2P" />
         </div>
       </section>
+      <aside className="always-settings battle-settings p1-settings">
+        <PlayerPanel p={a} set={setA} label="1P" />
+      </aside>
+      <aside className="always-settings battle-settings p2-settings">
+        <PlayerPanel p={b} set={setB} label="2P" />
+      </aside>
       <button
-        className="dock-button settings-toggle"
+        className="dock-button settings-toggle battle-settings-toggle"
         onClick={() => setSettingsOpen(true)}
       >
         AI SETTINGS
