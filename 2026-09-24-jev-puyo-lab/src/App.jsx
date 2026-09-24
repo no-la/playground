@@ -451,24 +451,57 @@ function Controls({ seed, setSeed, start, pause, paused }) {
     </div>
   );
 }
-function Trace({ logs }) {
+function Drawer({ open, onClose, title, side = "left", children }) {
+  if (!open) return null;
   return (
-    <section className="trace">
-      <p className="kicker">DECISION TRACE</p>
-      <h2>一手ごとの判断</h2>
-      {logs.map((l, i) => (
-        <p className="trace-row" key={i}>
-          <b>{l.n}</b>
-          <span>{l.text}</span>
-        </p>
-      ))}
-    </section>
+    <aside className={`drawer ${side}`} aria-label={title}>
+      <div className="drawer-head">
+        <strong>{title}</strong>
+        <button onClick={onClose} aria-label={`${title}を閉じる`}>
+          ×
+        </button>
+      </div>
+      <div className="drawer-body">{children}</div>
+    </aside>
+  );
+}
+function Trace({ logs }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <button
+        className="dock-button trace-toggle"
+        onClick={() => setOpen(true)}
+      >
+        TRACE <b>{logs.length}</b>
+      </button>
+      <Drawer
+        open={open}
+        onClose={() => setOpen(false)}
+        title="DECISION TRACE"
+        side="right"
+      >
+        <section className="trace">
+          <h2>一手ごとの判断</h2>
+          {logs.length === 0 && (
+            <p className="empty-trace">まだ判断ログはありません</p>
+          )}
+          {logs.map((l, i) => (
+            <p className="trace-row" key={i}>
+              <b>{l.n}</b>
+              <span>{l.text}</span>
+            </p>
+          ))}
+        </section>
+      </Drawer>
+    </>
   );
 }
 function Solo() {
   const [seed, setSeed] = useState(4242),
     [p, setP] = useState(fresh("p1")),
     [paused, setPaused] = useState(false),
+    [settingsOpen, setSettingsOpen] = useState(false),
     [logs, setLogs] = useState([]),
     token = useRef(0),
     pauseRef = useRef(false);
@@ -517,11 +550,25 @@ function Solo() {
   };
   return (
     <>
-      <section className="solo">
-        <PlayerPanel p={p} set={setP} label="1P" />
-        <Board p={p} label="1P" />
+      <div className="battle-controls game-controls">
         <Controls {...{ seed, setSeed, start, pause, paused }} />
+      </div>
+      <section className="solo-game">
+        <Board p={p} label="1P" />
       </section>
+      <button
+        className="dock-button settings-toggle"
+        onClick={() => setSettingsOpen(true)}
+      >
+        AI SETTINGS
+      </button>
+      <Drawer
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        title="1P AI SETTINGS"
+      >
+        <PlayerPanel p={p} set={setP} label="1P" />
+      </Drawer>
       <Trace logs={logs} />
     </>
   );
@@ -531,6 +578,7 @@ function Battle() {
     [a, setA] = useState(fresh("p1")),
     [b, setB] = useState(fresh("p2", "direct")),
     [paused, setPaused] = useState(false),
+    [settingsOpen, setSettingsOpen] = useState(false),
     [logs, setLogs] = useState([]),
     [result, setResult] = useState(""),
     token = useRef(0),
@@ -637,7 +685,6 @@ function Battle() {
       </div>
       <section className="battle">
         <div className="player-rig p1-rig">
-          <PlayerPanel p={a} set={setA} label="1P" />
           <Board p={a} label="1P" />
         </div>
         <div className="vs">
@@ -646,9 +693,22 @@ function Battle() {
         </div>
         <div className="player-rig p2-rig">
           <Board p={b} label="2P" />
-          <PlayerPanel p={b} set={setB} label="2P" />
         </div>
       </section>
+      <button
+        className="dock-button settings-toggle"
+        onClick={() => setSettingsOpen(true)}
+      >
+        AI SETTINGS
+      </button>
+      <Drawer
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        title="BATTLE AI SETTINGS"
+      >
+        <PlayerPanel p={a} set={setA} label="1P" />
+        <PlayerPanel p={b} set={setB} label="2P" />
+      </Drawer>
       <Trace logs={logs} />
     </>
   );
