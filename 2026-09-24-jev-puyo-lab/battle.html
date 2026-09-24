@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Jev Puyo Battle</title><link rel="stylesheet" href="battle.css"></head>
 <body><main>
-  <header><div><p>JEV PUYO LAB / VERSUS</p><h1>POLICY <span>BATTLE</span></h1></div><a href="/">← SOLO LAB</a></header>
+  <header><div><p>JEV PUYO LAB / VERSUS</p><h1>POLICY <span>BATTLE</span></h1></div><nav class="view-nav" aria-label="ゲームモード"><a href="/">SOLO</a><a class="active" href="battle.html">BATTLE</a></nav></header>
   <section class="setup">
     <div><label>1P PLAYER</label><select id="p1-mode"><option value="heuristic">HEURISTIC</option><option value="direct">JEV DIRECT</option><option value="jury">JEV JURY</option></select><select id="p1-strategy"><option value="chain">10-CHAIN</option><option value="balanced">BALANCED</option><option value="clear">QUICK CLEAR</option><option value="survive">SURVIVAL</option></select></div>
     <div class="center"><label>SEED</label><input id="seed" type="number" value="4242"><button id="start">START BATTLE</button><button id="pause">PAUSE</button></div>
