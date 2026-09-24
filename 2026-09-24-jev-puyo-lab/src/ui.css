@@ -628,3 +628,118 @@ header button.active {
 .trace-row {
   color: #d3e1ff;
 }
+
+/* NEXT is part of the playfield silhouette in Puyo: previews face the center. */
+.next-shoulder {
+  position: absolute;
+  z-index: 5;
+  top: 58px;
+  right: -52px;
+  width: 78px;
+}
+.p2 .next-shoulder {
+  right: auto;
+  left: -52px;
+}
+.next-shoulder .next {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 5px;
+  background: linear-gradient(145deg, #fff, #bff7ff 12%, #137bd1 14% 100%);
+  border: 3px solid #fff;
+  border-radius: 10px 18px 18px 10px;
+  box-shadow:
+    0 4px 0 #07539c,
+    inset 0 0 0 2px #60efff;
+}
+.p2 .next-shoulder .next {
+  background: linear-gradient(215deg, #fff, #ffd0e2 12%, #d72d72 14% 100%);
+  border-radius: 18px 10px 10px 18px;
+  box-shadow:
+    0 4px 0 #9d154d,
+    inset 0 0 0 2px #ff9fc4;
+}
+.next-slot {
+  position: relative;
+  min-height: 65px;
+  display: grid;
+  place-items: center;
+  padding-top: 12px;
+  background: rgba(8, 25, 72, 0.82);
+  border-radius: 8px 13px 13px 8px;
+}
+.p2 .next-slot {
+  border-radius: 13px 8px 8px 13px;
+}
+.next-slot small {
+  position: absolute;
+  top: 2px;
+  left: 0;
+  width: 100%;
+  color: #fff;
+  text-align: center;
+  font: 900 7px "DM Mono";
+  letter-spacing: 0.08em;
+  text-shadow: 0 1px 2px #001;
+}
+.next-shoulder .next-pair {
+  gap: 0;
+}
+.next-shoulder .next-pair i {
+  width: 27px;
+  height: 27px;
+  margin-top: -3px;
+  border: 2px solid #fff;
+}
+.battle {
+  grid-template-columns: minmax(470px, 1fr) 180px minmax(470px, 1fr);
+  gap: 0;
+}
+.battle > .player-rig {
+  grid-template-columns: minmax(145px, 170px) 326px;
+  gap: 12px;
+}
+.battle > .p2-rig {
+  grid-template-columns: 326px minmax(145px, 170px);
+}
+
+@media (max-width: 1100px) {
+  .battle {
+    grid-template-columns: 1fr 96px 1fr;
+  }
+  .battle > .player-rig {
+    display: block;
+  }
+  .battle .panel {
+    margin-bottom: 14px;
+  }
+  .p2-rig .panel {
+    margin-top: 14px;
+  }
+}
+
+@media (max-width: 760px) {
+  .next-shoulder {
+    top: 48px;
+    right: -42px;
+    width: 48px;
+  }
+  .p2 .next-shoulder {
+    left: -42px;
+  }
+  .next-shoulder .next {
+    padding: 3px;
+  }
+  .next-slot {
+    min-height: 48px;
+    padding-top: 10px;
+  }
+  .next-slot small {
+    font-size: 5px;
+  }
+  .next-shoulder .next-pair i {
+    width: 20px;
+    height: 20px;
+  }
+}

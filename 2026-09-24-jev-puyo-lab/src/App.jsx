@@ -138,6 +138,9 @@ function Board({ p, label }) {
           ),
         )}
       </div>
+      <div className="next-shoulder">
+        <NextQueue pairs={p.next} />
+      </div>
       <div className="board-shell">
         <div className="board-top">
           <b>{label}</b>
@@ -169,12 +172,14 @@ const Select = ({ value, onChange, items }) => (
 function NextQueue({ pairs }) {
   return (
     <div className="next">
-      <span>NEXT</span>
       {pairs.slice(0, 2).map((pair, i) => (
-        <div className="next-pair" key={i}>
-          {pair.map((color, j) => (
-            <i key={j} style={{ background: C[color] }} />
-          ))}
+        <div className="next-slot" key={i}>
+          <small>{i ? "NEXT 2" : "NEXT"}</small>
+          <div className="next-pair">
+            {pair.map((color, j) => (
+              <i key={j} style={{ background: C[color] }} />
+            ))}
+          </div>
         </div>
       ))}
     </div>
@@ -196,7 +201,6 @@ function PlayerPanel({ p, set, label }) {
         items={STRATEGIES}
       />
       <p className="note">{NOTES[p.strategy]}</p>
-      <NextQueue pairs={p.next} />
       <div className="score">
         <span>SCORE</span>
         <strong>{String(p.score).padStart(8, "0")}</strong>
@@ -616,7 +620,7 @@ function Battle() {
         <Controls {...{ seed, setSeed, start, pause, paused }} />
       </div>
       <section className="battle">
-        <div>
+        <div className="player-rig p1-rig">
           <PlayerPanel p={a} set={setA} label="1P" />
           <Board p={a} label="1P" />
         </div>
@@ -624,9 +628,9 @@ function Battle() {
           <b>VS</b>
           {result && <strong>{result}</strong>}
         </div>
-        <div>
-          <PlayerPanel p={b} set={setB} label="2P" />
+        <div className="player-rig p2-rig">
           <Board p={b} label="2P" />
+          <PlayerPanel p={b} set={setB} label="2P" />
         </div>
       </section>
       <Trace logs={logs} />
