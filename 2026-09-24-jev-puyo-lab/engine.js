@@ -3,6 +3,8 @@ export const ROWS = 13;
 export const VISIBLE_ROWS = 12;
 export const COLORS = 4;
 export const EMPTY = -1;
+export const DEATH_ROW = 1;
+export const DEATH_COL = 2;
 const ROTATIONS = [[0,-1],[1,0],[0,1],[-1,0]];
 const CHAIN_POWER = [0,8,16,32,64,96,128,160,192,224,256,288,320,352,384,416,448,480,512];
 const COLOR_BONUS = [0,0,3,6,12];
@@ -34,8 +36,11 @@ function landingRows(board, col, rotation) {
     if (pivot < 0 || satellite < 0) return null;
     return [{row:pivot,col},{row:satellite,col}];
   }
-  const a = { row:heights[col]-1, col };
-  const b = { row:heights[col+dc]-1, col:col+dc };
+  // 横向きの組は、どちらか一方が接地するまで一体のまま落ちる。
+  // 高さの違う列へ置いた場合、もう一方はこの後の重力で「ちぎり」落下する。
+  const row = Math.min(heights[col], heights[col+dc])-1;
+  const a = { row, col };
+  const b = { row, col:col+dc };
   return a.row < 0 || b.row < 0 ? null : [a,b];
 }
 
@@ -68,6 +73,7 @@ export function popGroups(board) {
 
 export function resolveBoard(input) {
   const board=cloneBoard(input); let chains=0,totalScore=0,cleared=0; const steps=[];
+  applyGravity(board);
   while(true){const groups=popGroups(board);if(!groups.length)break;chains++;const count=groups.reduce((n,g)=>n+g.cells.length,0);const colors=new Set(groups.map(g=>g.color)).size;const groupBonus=groups.reduce((n,g)=>n+(GROUP_BONUS[Math.min(g.cells.length,10)]??10),0);const bonus=Math.max(1,(CHAIN_POWER[Math.min(chains-1,CHAIN_POWER.length-1)]??512)+COLOR_BONUS[colors]+groupBonus);const score=count*10*bonus;totalScore+=score;cleared+=count;steps.push({chain:chains,groups,count,score,board:cloneBoard(board)});applyGravity(board);}
   const allClear=chains>0&&board.every(row=>row.every(cell=>cell===EMPTY));
   if(allClear)totalScore+=2100;
@@ -79,8 +85,10 @@ export function boardFeatures(board) {
   for(let c=0;c<COLS;c++){let top=ROWS;for(let r=0;r<ROWS;r++)if(board[r][c]!==EMPTY){top=Math.min(top,r);for(let y=r+1;y<ROWS;y++)if(board[y][c]===EMPTY)holes++;break;}heights.push(ROWS-top);}
   const seen=Array.from({length:ROWS},()=>Array(COLS).fill(false));
   for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)if(board[r][c]!==EMPTY&&!seen[r][c]){let size=0;const color=board[r][c],stack=[[r,c]];seen[r][c]=true;while(stack.length){const[y,x]=stack.pop();size++;for(const[dy,dx]of[[-1,0],[1,0],[0,-1],[0,1]]){const ny=y+dy,nx=x+dx;if(ny>=0&&ny<ROWS&&nx>=0&&nx<COLS&&!seen[ny][nx]&&board[ny][nx]===color){seen[ny][nx]=true;stack.push([ny,nx]);}}}if(size<4)potential+=size*size;}
-  return {maxHeight:Math.max(...heights),holes,bumpiness:heights.slice(1).reduce((n,h,i)=>n+Math.abs(h-heights[i]),0),potential,gameOver:board[1][2]!==EMPTY};
+  return {maxHeight:Math.max(...heights),holes,bumpiness:heights.slice(1).reduce((n,h,i)=>n+Math.abs(h-heights[i]),0),potential,gameOver:isGameOver(board)};
 }
+
+export function isGameOver(board) { return board[DEATH_ROW][DEATH_COL] !== EMPTY; }
 
 export function enumerateMoves(board,pair) {
   const moves=[];let index=0;

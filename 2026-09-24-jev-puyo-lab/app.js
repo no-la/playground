@@ -1,4 +1,4 @@
-import { COLS,ROWS,EMPTY,emptyBoard,createSequence,enumerateMoves,heuristicMove,boardToText } from "./engine.js";
+import { COLS,ROWS,EMPTY,emptyBoard,createSequence,enumerateMoves,heuristicMove,boardToText,isGameOver } from "./engine.js";
 
 const $=s=>document.querySelector(s);const boardCanvas=$("#board"),ctx=boardCanvas.getContext("2d"),nextCanvas=$("#next"),nextCtx=nextCanvas.getContext("2d");
 const W=boardCanvas.width/COLS,H=boardCanvas.height/(ROWS-1);const PALETTE=["#ed385d","#329cf5","#42d76f","#f5c329"];
@@ -27,12 +27,12 @@ function draw(){
   ctx.strokeStyle="rgba(115,158,255,.065)";ctx.lineWidth=1;for(let c=1;c<COLS;c++){ctx.beginPath();ctx.moveTo(c*W,0);ctx.lineTo(c*W,boardCanvas.height);ctx.stroke()}for(let r=1;r<ROWS-1;r++){ctx.beginPath();ctx.moveTo(0,r*H);ctx.lineTo(boardCanvas.width,r*H);ctx.stroke()}
   if(!game)return;for(let r=1;r<ROWS;r++)for(let c=0;c<COLS;c++)if(game.board[r][c]!==EMPTY)drawPuyo(ctx,game.board[r][c],c*W,(r-1)*H,W);
   if(game.active){for(const cell of game.active.cells){const y=(cell.row-1)*H;drawPuyo(ctx,pair()[cell.colorIndex],cell.col*W,y,W,game.active.squash||0,game.active.alpha??1);}}
-  if($("#mode").value==="human"&&game.running&&!game.active){const moves=enumerateMoves(game.board,pair()),move=moves.find(m=>m.col===humanMove.col&&m.rotation===humanMove.rotation)||moves[0];if(move){humanMove={col:move.col,rotation:move.rotation};for(const cell of move.cells)drawPuyo(ctx,pair()[cell.colorIndex],cell.col*W,(cell.row-1)*H,W,0,.23);const topCells=topPreview(humanMove);topCells.forEach((cell,i)=>drawPuyo(ctx,pair()[i],cell.col*W,cell.row*H,W));}}
+  if($("#mode").value==="human"&&game.running&&!game.active){const moves=enumerateMoves(game.board,pair()),move=moves.find(m=>m.col===humanMove.col&&m.rotation===humanMove.rotation)||moves[0];if(move){humanMove={col:move.col,rotation:move.rotation};for(const cell of move.cells)drawPuyo(ctx,pair()[cell.colorIndex],cell.col*W,(cell.row-1)*H,W,0,.23);const topCells=spawnCells(humanMove);topCells.forEach((cell,i)=>drawPuyo(ctx,pair()[i],cell.col*W,(cell.row-1)*H,W));}}
 }
-function topPreview(move){const offsets=[[0,-1],[1,0],[0,1],[-1,0]],o=offsets[move.rotation];return [{col:move.col,row:1},{col:move.col+o[0],row:1+o[1]}];}
+function spawnCells(move){const offsets=[[0,-1],[1,0],[0,1],[-1,0]],o=offsets[move.rotation];return [{col:move.col,row:1},{col:move.col+o[0],row:1+o[1]}];}
 function drawNext(){nextCtx.clearRect(0,0,nextCanvas.width,nextCanvas.height);nextCtx.fillStyle="#07102c";nextCtx.fillRect(0,0,nextCanvas.width,nextCanvas.height);if(!game)return;[nextPair(1),nextPair(2)].forEach((p,i)=>{const size=i?39:48,x=i?63:12,y=i?98:24;drawPuyo(nextCtx,p[1],x,y,size);drawPuyo(nextCtx,p[0],x,y+size-3,size);});}
 
-async function animatePlacement(move,token){const start=performance.now(),duration=220;while(performance.now()-start<duration){if(token!==runToken)return;const t=(performance.now()-start)/duration,e=1-(1-t)**3;game.active={cells:move.cells.map(c=>({...c,row:-1+(c.row+1)*e})),squash:Math.sin(t*Math.PI)*-.08};draw();await sleep(16)}game.active=null;}
+async function animatePlacement(move,token){const start=performance.now(),duration=220,spawn=spawnCells(move);while(performance.now()-start<duration){if(token!==runToken)return;const t=(performance.now()-start)/duration,e=1-(1-t)**3;game.active={cells:move.cells.map((c,i)=>({...c,row:spawn[i].row+(c.row-spawn[i].row)*e})),squash:Math.sin(t*Math.PI)*-.08};draw();await sleep(16)}game.active=null;}
 async function animateResolution(move,token){for(const step of move.steps){if(token!==runToken)return;game.board=step.board;game.score+=step.score;game.maxChain=Math.max(game.maxChain,step.chain);chainCall(step.chain);updateUI();await sleep(520)}game.board=move.resultBoard;updateUI();await sleep(150);}
 function chainCall(n){const el=$("#chain-call");el.textContent=`${n} CHAIN!`;el.classList.remove("show");void el.offsetWidth;el.classList.add("show");}
 
@@ -45,13 +45,13 @@ async function chooseMove(moves,mode){
 }
 
 async function playLoop(token){
-  while(game.running&&token===runToken){if(game.paused){await sleep(100);continue}const mode=$("#mode").value;if(mode==="human"){draw();await sleep(100);continue}
+  while(game.running&&token===runToken){if(game.paused){await sleep(100);continue}if(isGameOver(game.board)){endGame();break}const mode=$("#mode").value;if(mode==="human"){draw();await sleep(100);continue}
     const moves=enumerateMoves(game.board,pair());if(!moves.length){endGame();break}let choice;
     try{choice=await chooseMove(moves,mode)}catch(error){showError(error.message);game.paused=true;break}if(token!==runToken)return;await commitMove(choice.move,choice.decision,token);await sleep(260);
   }
 }
 async function commitMove(move,decision,token=runToken){
-  await animatePlacement(move,token);if(token!==runToken)return;game.turn++;game.latencies.push(decision.latencyMs||0);game.confidences.push(decision.confidence??1);renderDecision(move,decision);await animateResolution(move,token);addLog(move,decision);game.index++;if(move.gameOver||game.board[1][2]!==EMPTY){endGame();return}updateUI();
+  await animatePlacement(move,token);if(token!==runToken)return;game.turn++;game.latencies.push(decision.latencyMs||0);game.confidences.push(decision.confidence??1);renderDecision(move,decision);await animateResolution(move,token);addLog(move,decision);game.index++;if(isGameOver(game.board)){endGame();return}updateUI();
 }
 function renderDecision(move,d){$("#move").textContent=move.label;$("#posture").textContent=d.posture||"—";$("#latency").textContent=`${d.latencyMs||0}ms`;$("#model").textContent=(d.model||"LOCAL").replace("typesafe/","");$("#confidence-bar").style.width=`${(d.confidence??1)*100}%`;}
 function addLog(move,d){const result=move.allClear?`全消し / +${move.score}`:move.chains?`${move.chains}連鎖 / +${move.score}`:"積み上げ";game.logs.unshift({turn:game.turn,move:move.label,policy:d.posture||$("#mode").value,confidence:d.confidence??1,result});$("#log").innerHTML=game.logs.slice(0,30).map(x=>`<div class="log-row"><span>${String(x.turn).padStart(3,"0")}</span><span>${x.move}</span><span>${x.policy}</span><span>${Math.round(x.confidence*100)}%</span><span class="${x.result!=="積み上げ"?"good":""}">${x.result}</span></div>`).join("");}
