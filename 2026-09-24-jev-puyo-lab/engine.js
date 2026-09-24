@@ -74,7 +74,7 @@ export function popGroups(board) {
 export function resolveBoard(input) {
   const board=cloneBoard(input); let chains=0,totalScore=0,cleared=0; const steps=[];
   applyGravity(board);
-  while(true){const groups=popGroups(board);if(!groups.length)break;chains++;const count=groups.reduce((n,g)=>n+g.cells.length,0);const colors=new Set(groups.map(g=>g.color)).size;const groupBonus=groups.reduce((n,g)=>n+(GROUP_BONUS[Math.min(g.cells.length,10)]??10),0);const bonus=Math.max(1,(CHAIN_POWER[Math.min(chains-1,CHAIN_POWER.length-1)]??512)+COLOR_BONUS[colors]+groupBonus);const score=count*10*bonus;totalScore+=score;cleared+=count;steps.push({chain:chains,groups,count,score,board:cloneBoard(board)});applyGravity(board);}
+  while(true){const beforeBoard=cloneBoard(board),groups=popGroups(board);if(!groups.length)break;chains++;const count=groups.reduce((n,g)=>n+g.cells.length,0);const colors=new Set(groups.map(g=>g.color)).size;const groupBonus=groups.reduce((n,g)=>n+(GROUP_BONUS[Math.min(g.cells.length,10)]??10),0);const bonus=Math.max(1,(CHAIN_POWER[Math.min(chains-1,CHAIN_POWER.length-1)]??512)+COLOR_BONUS[colors]+groupBonus);const score=count*10*bonus;totalScore+=score;cleared+=count;const poppedBoard=cloneBoard(board);applyGravity(board);steps.push({chain:chains,groups,count,score,beforeBoard,poppedBoard,afterBoard:cloneBoard(board),board:poppedBoard});}
   const allClear=chains>0&&board.every(row=>row.every(cell=>cell===EMPTY));
   if(allClear)totalScore+=2100;
   return {board,chains,score:totalScore,cleared,steps,allClear};
