@@ -4,6 +4,7 @@ import { extname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = fileURLToPath(new URL(".", import.meta.url));
+const staticRoot = join(root, "dist");
 const port = Number(process.env.PORT || 4174);
 
 async function loadEnv(path) {
@@ -104,10 +105,10 @@ async function handle(req, res) {
   }
   if (req.method !== "GET") return sendJson(res, 405, { error:"Method not allowed" });
   const requested = req.url === "/" ? "index.html" : decodeURIComponent(req.url.slice(1).split("?")[0]);
-  const path = resolve(root, requested);
-  if (!path.startsWith(root)) return sendJson(res, 403, { error:"Forbidden" });
+  const path = resolve(staticRoot, requested);
+  if (!path.startsWith(staticRoot)) return sendJson(res, 403, { error:"Forbidden" });
   try { const file = await readFile(path); res.writeHead(200, { "content-type":mime[extname(path)] || "application/octet-stream" }); res.end(file); }
-  catch { sendJson(res, 404, { error:"Not found" }); }
+  catch { try { const file=await readFile(join(staticRoot,"index.html"));res.writeHead(200,{"content-type":"text/html; charset=utf-8"});res.end(file); } catch { sendJson(res,404,{error:"Build not found. Run npm run build."}); } }
 }
 
 if (process.env.NODE_ENV !== "test") createServer(handle).listen(port, "127.0.0.1", () => console.log(`Jev Puyo Lab → http://localhost:${port}`));
