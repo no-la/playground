@@ -106,4 +106,36 @@ export function scoreMove(m, strategy = "balanced") {
   if(strategy === "survive") return m.score*.5 + m.potential*2 - m.maxHeight*180 - m.holes*350 - m.bumpiness*30 - (m.gameOver?100000:0);
   return m.score*2 + m.chains*700 + m.potential*5 - danger;
 }
+
+function chainSearchValue(move, bestChain) {
+  const structure = move.potential*18 - move.maxHeight*65 - move.holes*240 - move.bumpiness*10;
+  const targetFire = move.chains >= 10 ? 50_000_000 + Math.pow(move.chains,4)*180 : -move.chains*2500;
+  const achieved = bestChain >= 10 ? 50_000_000 + Math.pow(bestChain,4)*240 : 0;
+  return structure + targetFire + achieved - (move.gameOver?1e9:0);
+}
+
+// 各初手から既知のNEXT列をビーム探索し、将来発火できる最大連鎖を見積もる。
+export function forecastChains(moves, futurePairs, depth = 8, width = 18) {
+  const forecasts = new Map();
+  for (const root of moves) {
+    let beam=[{board:root.resultBoard,best:root.chains,value:chainSearchValue(root,root.chains)}];
+    for(let ply=0;ply<Math.min(depth,futurePairs.length);ply++){
+      const expanded=[];
+      for(const state of beam) for(const move of enumerateMoves(state.board,futurePairs[ply])){
+        const best=Math.max(state.best,move.chains);
+        expanded.push({board:move.resultBoard,best,value:chainSearchValue(move,best)});
+      }
+      if(!expanded.length)break;
+      expanded.sort((a,b)=>b.value-a.value);beam=expanded.slice(0,width);
+    }
+    const best=beam.sort((a,b)=>b.value-a.value)[0];
+    forecasts.set(root.id,{forecastChain:best?.best??root.chains,forecastValue:Math.round(best?.value??-1e9)});
+  }
+  return forecasts;
+}
+
+export function chainPlannerMove(moves, futurePairs, depth = 8, width = 18) {
+  const forecasts=forecastChains(moves,futurePairs,depth,width);
+  return [...moves].sort((a,b)=>(forecasts.get(b.id)?.forecastValue??-1e9)-(forecasts.get(a.id)?.forecastValue??-1e9))[0];
+}
 export function boardToText(board) { return board.slice(1).map(row => row.map(v => v===EMPTY?".":"RGBY"[v]).join("")).join("\n"); }

@@ -1,10 +1,10 @@
-import { COLS,ROWS,EMPTY,emptyBoard,createSequence,enumerateMoves,heuristicMove,boardToText,isGameOver } from "./engine.js";
+import { COLS,ROWS,EMPTY,emptyBoard,createSequence,enumerateMoves,heuristicMove,forecastChains,boardToText,isGameOver } from "./engine.js";
 
 const $=s=>document.querySelector(s);const boardCanvas=$("#board"),ctx=boardCanvas.getContext("2d"),nextCanvas=$("#next"),nextCtx=nextCanvas.getContext("2d");
 const W=boardCanvas.width/COLS,H=boardCanvas.height/(ROWS-1);const PALETTE=["#ed385d","#329cf5","#42d76f","#f5c329"];
 let game=null,timer=null,runToken=0,humanMove={col:2,rotation:0};
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
-const STRATEGY_NOTES={balanced:"生存と連鎖をバランスよく評価",chain:"小さな消去を我慢して連鎖の種を育てる",clear:"消せるぷよを早めに消して得点化",survive:"高さ・穴・凹凸を抑えて生存を優先"};
+const STRATEGY_NOTES={balanced:"生存と連鎖をバランスよく評価",chain:"8手先を探索して10連鎖以上を設計する",clear:"消せるぷよを早めに消して得点化",survive:"高さ・穴・凹凸を抑えて生存を優先"};
 
 function resetState(){const seed=Number($("#seed").value)||4242;game={seed,sequence:createSequence(seed),index:0,board:emptyBoard(),score:0,maxChain:0,turn:0,running:true,paused:false,latencies:[],confidences:[],logs:[],active:null};}
 function pair(){return game.sequence[game.index];}function nextPair(offset=1){return game.sequence[game.index+offset];}
@@ -40,9 +40,15 @@ function chainCall(n){const el=$("#chain-call");el.textContent=`${n} CHAIN!`;el.
 function safeCandidates(moves){return moves.map(({resultBoard,steps,cells,...move})=>move);}
 async function chooseMove(moves,mode){
   const strategy=$("#strategy").value;
-  if(mode==="heuristic"){const started=performance.now();const move=heuristicMove(moves,strategy);return {move,decision:{moveId:move.id,confidence:1,posture:`${strategy} heuristic`,latencyMs:Math.round(performance.now()-started),model:"LOCAL"}};}
+  const started=performance.now();
+  if(strategy==="chain"){
+    const forecasts=forecastChains(moves,game.sequence.slice(game.index+1,game.index+9));
+    for(const move of moves)Object.assign(move,forecasts.get(move.id));
+  }
+  if(mode==="heuristic"){const move=strategy==="chain"?[...moves].sort((a,b)=>b.forecastValue-a.forecastValue)[0]:heuristicMove(moves,strategy);return {move,decision:{moveId:move.id,confidence:1,posture:strategy==="chain"?`10-chain forecast ${move.forecastChain}`:`${strategy} heuristic`,latencyMs:Math.round(performance.now()-started),model:"LOCAL"}};}
   $(".decision").classList.add("thinking");$("#status").textContent="JEV THINKING";
-  const response=await fetch("/api/decide",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({board:boardToText(game.board),pair:"RGBY"[pair()[0]]+"RGBY"[pair()[1]],next:"RGBY"[nextPair()[0]]+"RGBY"[nextPair()[1]],candidates:safeCandidates(moves),mode,strategy})});
+  const finalists=strategy==="chain"?[...moves].sort((a,b)=>b.forecastValue-a.forecastValue).slice(0,2):moves;
+  const response=await fetch("/api/decide",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({board:boardToText(game.board),pair:"RGBY"[pair()[0]]+"RGBY"[pair()[1]],next:"RGBY"[nextPair()[0]]+"RGBY"[nextPair()[1]],candidates:safeCandidates(finalists),mode,strategy})});
   const result=await response.json();$(".decision").classList.remove("thinking");$("#status").textContent="RUNNING";if(!response.ok)throw new Error(result.error||"Jev decision failed");return {move:moves.find(m=>m.id===result.moveId)||heuristicMove(moves,strategy),decision:result};
 }
 

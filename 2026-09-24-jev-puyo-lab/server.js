@@ -31,13 +31,13 @@ async function bodyJson(req) {
 
 function candidateCriteria(candidates) {
   return Object.fromEntries(candidates.map((move) => [move.id,
-    `${move.label}: 即時${move.chains}連鎖、${move.cleared}個消去、得点${move.score}、最大高さ${move.maxHeight}、穴${move.holes}、凹凸${move.bumpiness}、未消去の同色グループ接続スコア${move.potential}${move.gameOver?"、死亡手":""}`
+    `${move.label}: 即時${move.chains}連鎖、${move.cleared}個消去、得点${move.score}、最大高さ${move.maxHeight}、穴${move.holes}、凹凸${move.bumpiness}、接続スコア${move.potential}${Number.isFinite(move.forecastChain)?`、8手先の到達見込み${move.forecastChain}連鎖、先読み評価${move.forecastValue}`:""}${move.gameOver?"、死亡手":""}`
   ]));
 }
 
 const STRATEGIES = {
   balanced:{ objective:"ゲームオーバーを避けながら大きな連鎖を構築し、高得点を得る", guidance:"生存、連鎖への発展性、即時得点のバランスを取る" },
-  chain:{ objective:"小さな即時消去を我慢して連鎖を育て、完成した連鎖は適切に発火する", guidance:"連鎖構築の局面別ルールに従う" },
+  chain:{ objective:"8手先の探索結果を使って10連鎖以上を組み、完成時に発火する", guidance:"10連鎖構築の局面別ルールに従う" },
   clear:{ objective:"消せるぷよを早く消し、即時得点と連鎖を確実に得る", guidance:"即時の消去数、連鎖数、得点を優先する。ただしゲームオーバーは避ける" },
   survive:{ objective:"盤面を低く平坦に保ち、できるだけ長く生存する", guidance:"高さ、穴、凹凸、中央上段の危険を最小化する。得点は二次的に扱う" },
 };
@@ -46,10 +46,12 @@ function policyGuidance(strategy, candidates) {
   const base = STRATEGIES[strategy] || STRATEGIES.balanced;
   if (strategy !== "chain") return base.guidance;
   const maxChain = Math.max(...candidates.map((move) => move.chains));
+  const maxForecast = Math.max(...candidates.map((move) => move.forecastChain || 0));
   const lowestHeight = Math.min(...candidates.filter((move) => !move.gameOver).map((move) => move.maxHeight));
-  if (maxChain >= 2) return `発火局面。今すぐ${maxChain}連鎖できる候補がある。死亡手を除き、連鎖数を最優先、次に得点が高い発火手を選ぶ。積み続けない`;
+  if (maxChain >= 10) return `完成・発火局面。今すぐ${maxChain}連鎖できる。死亡手を除き、即時連鎖数が最大の手を選んで必ず発火する`;
   if (lowestHeight >= 9) return "危険局面。小消しを許可し、死亡を避けて最大高さ・穴・凹凸を下げる手を選ぶ";
-  return "構築局面。即時1連鎖は原則選ばない。消去0の候補から、未消去の同色グループ接続スコアが高く、穴がなく、最大高さ8以下の手を選ぶ。単に中央へ積み続けない";
+  if (maxForecast >= 10) return `10連鎖経路を発見。即時発火は避け、到達見込み${maxForecast}連鎖の候補のうち先読み評価が最大の手を選ぶ。探索結果を直感で上書きしない`;
+  return `探索継続局面。10連鎖未満は発火しない。死亡手を除き、先読み評価が最大の手を選び、到達見込み連鎖数を増やす`;
 }
 
 export async function decideWithJev({ board, pair, next, candidates, mode, strategy = "balanced" }, apiKey = process.env.LOLIPOP_AI_GATEWAY_API_KEY) {
