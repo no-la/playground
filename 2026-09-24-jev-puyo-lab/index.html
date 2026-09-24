@@ -11,6 +11,7 @@
     <section class="lab">
       <aside class="panel left-panel">
         <div class="mode-block"><span class="label">PLAYER</span><select id="mode"><option value="human">HUMAN</option><option value="heuristic">HEURISTIC</option><option value="direct">JEV DIRECT</option><option value="jury">JEV JURY</option></select></div>
+        <div class="strategy-block"><span class="label">STRATEGY / PROMPT</span><select id="strategy"><option value="balanced">BALANCED</option><option value="chain">CHAIN BUILDER</option><option value="clear">QUICK CLEAR</option><option value="survive">SURVIVAL</option></select><p id="strategy-note">生存と連鎖をバランスよく評価</p></div>
         <div class="metric hero"><span class="label">SCORE</span><strong id="score">00000000</strong></div>
         <div class="metric-grid"><div class="metric"><span class="label">MAX CHAIN</span><strong id="max-chain">0</strong></div><div class="metric"><span class="label">TURN</span><strong id="turn">0</strong></div><div class="metric"><span class="label">AVG TIME</span><strong id="avg-time">—</strong></div><div class="metric"><span class="label">CONF.</span><strong id="confidence">—</strong></div></div>
         <div class="seed-block"><label class="label" for="seed">SEQUENCE SEED</label><div><input id="seed" type="number" value="4242"><button id="random-seed" title="ランダムシード">↻</button></div></div>

@@ -11,7 +11,7 @@ LOLIPOP_AI_GATEWAY_API_KEY=...
 ```
 
 ```bash
-cd 2026-04-12-puyopuyo
+cd 2026-09-24-jev-puyo-lab
 npm start
 ```
 
@@ -25,6 +25,15 @@ npm start
 - `JEV JURY`：合法手ごとに独立したNoul判定を行い、最高確率の手を採用する
 
 同じシードを使うと同じぷよ列で比較できます。
+
+## 判断方針
+
+`STRATEGY / PROMPT` から、全プレイヤー共通の判断方針を切り替えられます。Jevではプロンプトが切り替わり、HEURISTICでは採点の重みが切り替わります。
+
+- `BALANCED`：生存・連鎖構築・即時得点をバランスよく評価
+- `CHAIN BUILDER`：1連鎖や少量消去を我慢し、同色の接続と将来の大連鎖を優先
+- `QUICK CLEAR`：即時消去、連鎖、得点を優先
+- `SURVIVAL`：盤面の高さ、穴、凹凸を抑えて長期生存を優先
 
 ## 実装したルール
 

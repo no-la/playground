@@ -35,25 +35,33 @@ function candidateCriteria(candidates) {
   ]));
 }
 
-export async function decideWithJev({ board, pair, next, candidates, mode }, apiKey = process.env.LOLIPOP_AI_GATEWAY_API_KEY) {
+const STRATEGIES = {
+  balanced:{ objective:"ゲームオーバーを避けながら大きな連鎖を構築し、高得点を得る", guidance:"生存、連鎖への発展性、即時得点のバランスを取る" },
+  chain:{ objective:"小さな即時消去をできるだけ我慢し、将来の大連鎖を構築する", guidance:"1連鎖や少量消去は原則避ける。同色の接続力を育て、発火点を残す。危険時または2連鎖以上だけ発火を許す" },
+  clear:{ objective:"消せるぷよを早く消し、即時得点と連鎖を確実に得る", guidance:"即時の消去数、連鎖数、得点を優先する。ただしゲームオーバーは避ける" },
+  survive:{ objective:"盤面を低く平坦に保ち、できるだけ長く生存する", guidance:"高さ、穴、凹凸、中央上段の危険を最小化する。得点は二次的に扱う" },
+};
+
+export async function decideWithJev({ board, pair, next, candidates, mode, strategy = "balanced" }, apiKey = process.env.LOLIPOP_AI_GATEWAY_API_KEY) {
   if (!apiKey) throw new Error("LOLIPOP_AI_GATEWAY_API_KEY が設定されていません");
   if (!Array.isArray(candidates) || candidates.length < 1 || candidates.length > 24) throw new Error("invalid candidates");
+  const policy = STRATEGIES[strategy] || STRATEGIES.balanced;
   const state = {
     game: "ぷよぷよ。6列×12段。同色4個以上で消え、連鎖ほど高得点。中央上段が埋まると敗北。",
     board, current_pair: pair, next_pair: next,
-    objective: "ゲームオーバーを避けながら大きな連鎖を構築し、高得点を得る",
+    objective: policy.objective,
     candidates,
   };
   let questions;
   if (mode === "jury") {
     questions = Object.fromEntries(candidates.map((move) => [`move_${move.id}`, {
       type:"noul",
-      instructions:`現在の盤面と次の組を考慮したとき、候補 ${move.id}（${move.label}）は他候補より優れた一手ですか？ 生存、大連鎖への発展性、盤面の平坦さを重視してください。`,
+      instructions:`現在の盤面と次の組を考慮したとき、候補 ${move.id}（${move.label}）は方針に合う優れた一手ですか？ 方針: ${policy.guidance}`,
       criteria:{ true:"採用する価値が高い", false:"他の合法手を選ぶべき" },
     }]));
   } else {
     questions = {
-      move:{ type:"choice", instructions:"現在と次の組を考慮し、最も良い配置を選んでください。即時消去だけでなく、死亡回避と将来の大連鎖を重視してください。", criteria:candidateCriteria(candidates) },
+      move:{ type:"choice", instructions:`現在と次の組を考慮し、最も方針に合う配置を選んでください。方針: ${policy.guidance}`, criteria:candidateCriteria(candidates) },
       posture:{ type:"choice", instructions:"現在の局面で優先すべき方針を選んでください。", criteria:{ survive:"危険を避け盤面を低くする", build:"連鎖の種を育てる", fire:"今すぐ連鎖を発火する", repair:"凹凸や孤立ぷよを修復する" } },
       danger:{ type:"score", instructions:"現在の敗北危険度を評価してください。", criteria:["安全","やや注意","危険","極めて危険"] },
     };

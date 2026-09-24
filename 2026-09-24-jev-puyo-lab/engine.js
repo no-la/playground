@@ -96,8 +96,14 @@ export function enumerateMoves(board,pair) {
   return moves;
 }
 
-export function heuristicMove(moves) {
-  return [...moves].sort((a,b) => scoreMove(b)-scoreMove(a))[0];
+export function heuristicMove(moves, strategy = "balanced") {
+  return [...moves].sort((a,b) => scoreMove(b,strategy)-scoreMove(a,strategy))[0];
 }
-export function scoreMove(m) { return m.score*2 + m.chains*700 + m.potential*5 - m.maxHeight*55 - m.holes*180 - m.bumpiness*9 - (m.gameOver?100000:0); }
+export function scoreMove(m, strategy = "balanced") {
+  const danger = m.maxHeight*55 + m.holes*180 + m.bumpiness*9 + (m.gameOver?100000:0);
+  if(strategy === "chain") return m.potential*24 + m.chains*350 + m.score*.15 - danger - (m.chains===1?500:0);
+  if(strategy === "clear") return m.score*4 + m.cleared*80 + m.chains*900 - danger;
+  if(strategy === "survive") return m.score*.5 + m.potential*2 - m.maxHeight*180 - m.holes*350 - m.bumpiness*30 - (m.gameOver?100000:0);
+  return m.score*2 + m.chains*700 + m.potential*5 - danger;
+}
 export function boardToText(board) { return board.slice(1).map(row => row.map(v => v===EMPTY?".":"RGBY"[v]).join("")).join("\n"); }
