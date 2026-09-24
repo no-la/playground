@@ -32,7 +32,7 @@ const NOTES = {
   clear: "消せるぷよを早めに得点化",
   survive: "高さ・穴・凹凸を抑えて生存",
 };
-const fresh = (id, mode = "heuristic", strategy = "chain") => ({
+const fresh = (id, mode = "heuristic", strategy = "chain", seed = 4242) => ({
   id,
   board: emptyBoard(),
   score: 0,
@@ -44,7 +44,7 @@ const fresh = (id, mode = "heuristic", strategy = "chain") => ({
   last: "判断待ち",
   confidence: null,
   effect: null,
-  next: [],
+  next: createSequence(seed, 3).slice(1, 3),
 });
 function Board({ p, label }) {
   const ref = useRef();
@@ -129,17 +129,31 @@ function Board({ p, label }) {
     x.globalAlpha = 1;
   }, [p]);
   return (
-    <div className="board-shell">
-      <div className="board-top">
-        <b>{label}</b>
-        <span>{p.alive ? "ACTIVE" : "DOWN"}</span>
+    <div className={`board-wrap ${p.id}`}>
+      <div className="ojama-tray" aria-label={`おじゃま予告 ${p.pending}個`}>
+        {Array.from(
+          { length: Math.min(6, Math.ceil(p.pending / 6)) },
+          (_, i) => (
+            <i key={i} />
+          ),
+        )}
       </div>
-      <canvas ref={ref} width="360" height="720" />
-      {p.effect?.chain && (
-        <div className="chain-pop">
-          {p.effect.chain} CHAIN!<small>{p.effect.count} PUYO POP</small>
+      <div className="board-shell">
+        <div className="board-top">
+          <b>{label}</b>
+          <span>{p.alive ? "READY!" : "× DOWN"}</span>
         </div>
-      )}
+        <canvas ref={ref} width="360" height="720" />
+        {p.effect?.chain && (
+          <div className="chain-pop">
+            {p.effect.chain} CHAIN!<small>{p.effect.count} PUYO POP</small>
+          </div>
+        )}
+        <div className="board-score">
+          <small>SCORE</small>
+          <strong>{String(p.score).padStart(8, "0")}</strong>
+        </div>
+      </div>
     </div>
   );
 }
@@ -447,7 +461,7 @@ function Solo() {
   const start = () => {
     let run = ++token.current,
       seq = createSequence(seed),
-      x = fresh("p1", p.mode, p.strategy);
+      x = fresh("p1", p.mode, p.strategy, seed);
     setP({ ...x });
     setLogs([]);
     pauseRef.current = false;
@@ -510,8 +524,8 @@ function Battle() {
   const start = () => {
     let run = ++token.current,
       seq = createSequence(seed),
-      x = fresh("p1", a.mode, a.strategy),
-      y = fresh("p2", b.mode, b.strategy);
+      x = fresh("p1", a.mode, a.strategy, seed),
+      y = fresh("p2", b.mode, b.strategy, seed);
     setA({ ...x });
     setB({ ...y });
     setLogs([]);
