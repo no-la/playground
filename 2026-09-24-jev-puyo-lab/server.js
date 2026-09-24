@@ -31,37 +31,49 @@ async function bodyJson(req) {
 
 function candidateCriteria(candidates) {
   return Object.fromEntries(candidates.map((move) => [move.id,
-    `${move.label}: 即時${move.chains}連鎖、${move.cleared}個消去、着地後の最大高さ${move.maxHeight}、穴${move.holes}、凹凸${move.bumpiness}、同色の接続力${move.potential}`
+    `${move.label}: 即時${move.chains}連鎖、${move.cleared}個消去、得点${move.score}、最大高さ${move.maxHeight}、穴${move.holes}、凹凸${move.bumpiness}、未消去の同色グループ接続スコア${move.potential}${move.gameOver?"、死亡手":""}`
   ]));
 }
 
 const STRATEGIES = {
   balanced:{ objective:"ゲームオーバーを避けながら大きな連鎖を構築し、高得点を得る", guidance:"生存、連鎖への発展性、即時得点のバランスを取る" },
-  chain:{ objective:"小さな即時消去をできるだけ我慢し、将来の大連鎖を構築する", guidance:"1連鎖や少量消去は原則避ける。同色の接続力を育て、発火点を残す。危険時または2連鎖以上だけ発火を許す" },
+  chain:{ objective:"小さな即時消去を我慢して連鎖を育て、完成した連鎖は適切に発火する", guidance:"連鎖構築の局面別ルールに従う" },
   clear:{ objective:"消せるぷよを早く消し、即時得点と連鎖を確実に得る", guidance:"即時の消去数、連鎖数、得点を優先する。ただしゲームオーバーは避ける" },
   survive:{ objective:"盤面を低く平坦に保ち、できるだけ長く生存する", guidance:"高さ、穴、凹凸、中央上段の危険を最小化する。得点は二次的に扱う" },
 };
+
+function policyGuidance(strategy, candidates) {
+  const base = STRATEGIES[strategy] || STRATEGIES.balanced;
+  if (strategy !== "chain") return base.guidance;
+  const maxChain = Math.max(...candidates.map((move) => move.chains));
+  const lowestHeight = Math.min(...candidates.filter((move) => !move.gameOver).map((move) => move.maxHeight));
+  if (maxChain >= 2) return `発火局面。今すぐ${maxChain}連鎖できる候補がある。死亡手を除き、連鎖数を最優先、次に得点が高い発火手を選ぶ。積み続けない`;
+  if (lowestHeight >= 9) return "危険局面。小消しを許可し、死亡を避けて最大高さ・穴・凹凸を下げる手を選ぶ";
+  return "構築局面。即時1連鎖は原則選ばない。消去0の候補から、未消去の同色グループ接続スコアが高く、穴がなく、最大高さ8以下の手を選ぶ。単に中央へ積み続けない";
+}
 
 export async function decideWithJev({ board, pair, next, candidates, mode, strategy = "balanced" }, apiKey = process.env.LOLIPOP_AI_GATEWAY_API_KEY) {
   if (!apiKey) throw new Error("LOLIPOP_AI_GATEWAY_API_KEY が設定されていません");
   if (!Array.isArray(candidates) || candidates.length < 1 || candidates.length > 24) throw new Error("invalid candidates");
   const policy = STRATEGIES[strategy] || STRATEGIES.balanced;
+  const guidance = policyGuidance(strategy, candidates);
   const state = {
     game: "ぷよぷよ。6列×12段。同色4個以上で消え、連鎖ほど高得点。中央上段が埋まると敗北。",
     board, current_pair: pair, next_pair: next,
     objective: policy.objective,
+    decision_rule: guidance,
     candidates,
   };
   let questions;
   if (mode === "jury") {
     questions = Object.fromEntries(candidates.map((move) => [`move_${move.id}`, {
       type:"noul",
-      instructions:`現在の盤面と次の組を考慮したとき、候補 ${move.id}（${move.label}）は方針に合う優れた一手ですか？ 方針: ${policy.guidance}`,
+      instructions:`候補 ${move.id}（${move.label}）が今回の局面ルールに合う一手か判定してください。今回のルール: ${guidance}`,
       criteria:{ true:"採用する価値が高い", false:"他の合法手を選ぶべき" },
     }]));
   } else {
     questions = {
-      move:{ type:"choice", instructions:`現在と次の組を考慮し、最も方針に合う配置を選んでください。方針: ${policy.guidance}`, criteria:candidateCriteria(candidates) },
+      move:{ type:"choice", instructions:`候補の数値を比較し、今回の局面ルールに最も忠実な配置を1つ選んでください。今回のルール: ${guidance}`, criteria:candidateCriteria(candidates) },
       posture:{ type:"choice", instructions:"現在の局面で優先すべき方針を選んでください。", criteria:{ survive:"危険を避け盤面を低くする", build:"連鎖の種を育てる", fire:"今すぐ連鎖を発火する", repair:"凹凸や孤立ぷよを修復する" } },
       danger:{ type:"score", instructions:"現在の敗北危険度を評価してください。", criteria:["安全","やや注意","危険","極めて危険"] },
     };
