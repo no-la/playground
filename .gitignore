@@ -13,3 +13,5 @@ out
 # Misc
 *.bak
 *.local
+
+.env
