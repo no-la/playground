@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#090f2d"><title>Jev Puyo Lab</title><link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="sky" aria-hidden="true"><i></i><i></i><i></i></div>
+  <main>
+    <header><div><p class="kicker">SYSTEM ONE ARCADE / EXPERIMENT 02</p><h1><span>JEV</span> PUYO LAB</h1></div><div class="live"><b></b><span id="connection">READY</span></div></header>
+    <section class="lab">
+      <aside class="panel left-panel">
+        <div class="mode-block"><span class="label">PLAYER</span><select id="mode"><option value="human">HUMAN</option><option value="heuristic">HEURISTIC</option><option value="direct">JEV DIRECT</option><option value="jury">JEV JURY</option></select></div>
+        <div class="metric hero"><span class="label">SCORE</span><strong id="score">00000000</strong></div>
+        <div class="metric-grid"><div class="metric"><span class="label">MAX CHAIN</span><strong id="max-chain">0</strong></div><div class="metric"><span class="label">TURN</span><strong id="turn">0</strong></div><div class="metric"><span class="label">AVG TIME</span><strong id="avg-time">—</strong></div><div class="metric"><span class="label">CONF.</span><strong id="confidence">—</strong></div></div>
+        <div class="seed-block"><label class="label" for="seed">SEQUENCE SEED</label><div><input id="seed" type="number" value="4242"><button id="random-seed" title="ランダムシード">↻</button></div></div>
+        <button class="primary" id="start">START RUN</button><button class="secondary" id="pause">PAUSE</button>
+      </aside>
+      <section class="stage">
+        <div class="board-shell"><div class="board-top"><span>1P</span><span id="status">STANDBY</span></div><canvas id="board" width="360" height="720" aria-label="ぷよぷよのゲーム盤"></canvas><div id="chain-call" class="chain-call"></div><div id="overlay" class="overlay"><h2>READY?</h2><p>プレイヤーを選んで実験を開始</p></div></div>
+        <div class="garbage-tray" id="garbage-tray" aria-label="おじゃま予告"></div>
+      </section>
+      <aside class="panel right-panel">
+        <div class="next-box"><span class="label">NEXT</span><canvas id="next" width="116" height="220"></canvas></div>
+        <div class="decision"><div class="decision-head"><span class="label">LAST DECISION</span><b id="brain-light"></b></div><strong id="move">—</strong><p id="posture">判断待ち</p><div class="confidence-bar"><i id="confidence-bar"></i></div><dl><div><dt>LATENCY</dt><dd id="latency">—</dd></div><div><dt>MODEL</dt><dd id="model">—</dd></div></dl></div>
+        <div class="controls"><span class="label">HUMAN CONTROLS</span><p><kbd>←</kbd><kbd>→</kbd> 移動</p><p><kbd>Z</kbd><kbd>X</kbd> 回転</p><p><kbd>↓</kbd> 高速落下</p><p><kbd>SPACE</kbd> 即時落下</p></div>
+      </aside>
+    </section>
+    <section class="log-section"><div class="log-head"><div><p class="kicker">DECISION TRACE</p><h2>一手ごとの判断</h2></div><button id="clear-log">CLEAR</button></div><div class="log-table"><div class="log-row headings"><span>TURN</span><span>MOVE</span><span>POLICY</span><span>CONFIDENCE</span><span>RESULT</span></div><div id="log"><p class="empty">実験を開始すると、ここに判断が記録されます。</p></div></div></section>
+  </main>
+  <footer><span>ORIGINAL VISUALS / PUZZLE MECHANICS STUDY</span><span>POWERED BY TYPESAFE JEV</span></footer>
+  <script type="module" src="app.js"></script>
+</body></html>
