@@ -743,3 +743,199 @@ header button.active {
     height: 20px;
   }
 }
+
+/* Stable game layout: fields own the first row; tuning panels sit below them. */
+.solo {
+  column-gap: 72px;
+}
+.battle-controls {
+  max-width: 720px;
+  margin: 8px auto 12px;
+}
+.battle-controls .controls {
+  grid-template-columns: 220px 1fr 1fr;
+  align-items: end;
+  gap: 10px;
+  padding: 10px 12px;
+}
+.battle-controls label {
+  grid-column: auto;
+}
+.battle-controls .controls input {
+  margin: 4px 0 0;
+  padding: 8px 10px;
+}
+.battle-controls .controls button {
+  margin: 0;
+  height: 36px;
+  padding: 8px;
+}
+.battle {
+  grid-template-columns: 326px 150px 326px;
+  justify-content: center;
+  align-items: start;
+  gap: 0;
+  overflow: visible;
+}
+.battle > div.player-rig:not(.vs),
+.battle > div.p2-rig:not(.vs) {
+  width: 326px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.battle .board-wrap {
+  order: 1;
+  width: 326px;
+}
+.battle .panel {
+  order: 2;
+  width: 326px;
+  min-height: 0;
+  margin: 0;
+}
+.battle .board-shell {
+  margin: 0;
+}
+.battle .vs {
+  align-self: start;
+  padding-top: 285px;
+}
+.battle .p1 .next-shoulder {
+  right: -62px;
+}
+.battle .p2 .next-shoulder {
+  left: -62px;
+}
+
+@media (max-width: 900px) {
+  .battle {
+    grid-template-columns: minmax(0, 1fr) 86px minmax(0, 1fr);
+  }
+  .battle > div.player-rig:not(.vs),
+  .battle > div.p2-rig:not(.vs),
+  .battle .board-wrap,
+  .battle .board-shell,
+  .battle .panel {
+    width: 100%;
+  }
+  .battle .board-shell canvas {
+    width: 100%;
+    height: auto;
+  }
+  .battle .vs {
+    padding-top: 235px;
+  }
+  .battle .p1 .next-shoulder {
+    right: -43px;
+  }
+  .battle .p2 .next-shoulder {
+    left: -43px;
+  }
+  .battle .next-shoulder {
+    width: 52px;
+  }
+  .battle .next-slot {
+    min-height: 50px;
+  }
+  .battle .next-shoulder .next-pair i {
+    width: 21px;
+    height: 21px;
+  }
+}
+
+@media (max-width: 620px) {
+  main {
+    width: calc(100% - 12px);
+  }
+  .battle {
+    grid-template-columns: minmax(0, 1fr) 54px minmax(0, 1fr);
+    padding-inline: 2px;
+  }
+  .battle .panel {
+    padding: 8px;
+  }
+  .battle .panel .note,
+  .battle .panel .decision {
+    display: none;
+  }
+  .battle .panel select {
+    padding: 7px 4px;
+    font-size: 9px;
+  }
+  .battle .vs {
+    padding-top: 180px;
+  }
+  .battle .p1 .next-shoulder {
+    right: -25px;
+  }
+  .battle .p2 .next-shoulder {
+    left: -25px;
+  }
+  .battle .next-shoulder {
+    top: 42px;
+    width: 36px;
+  }
+  .battle .next-shoulder .next {
+    padding: 2px;
+    border-width: 2px;
+  }
+  .battle .next-slot {
+    min-height: 38px;
+  }
+  .battle .next-slot small {
+    font-size: 4px;
+  }
+  .battle .next-shoulder .next-pair i {
+    width: 15px;
+    height: 15px;
+    border-width: 1px;
+  }
+  .battle .vs b {
+    font-size: 30px;
+    -webkit-text-stroke-width: 1px;
+  }
+  .battle .board-score small {
+    display: none;
+  }
+  .battle .board-score strong {
+    font-size: 20px;
+  }
+}
+
+@media (max-width: 760px) {
+  .solo .board-wrap {
+    order: 1;
+  }
+  .solo .panel {
+    order: 2;
+  }
+  .solo > .controls {
+    order: 3;
+  }
+}
+
+@media (max-width: 460px) {
+  header {
+    height: 76px;
+  }
+  header .kicker {
+    display: none;
+  }
+  header h1 {
+    font-size: 18px;
+    white-space: nowrap;
+  }
+  header button {
+    padding-inline: 11px;
+  }
+  .battle-controls .controls {
+    grid-template-columns: 1fr 1fr;
+  }
+  .battle-controls label {
+    grid-column: 1 / -1;
+  }
+  .solo .next-shoulder {
+    right: -20px;
+  }
+}
