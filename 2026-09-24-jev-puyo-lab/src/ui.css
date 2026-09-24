@@ -1,3 +1,388 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@500&family=Nunito:wght@700;800;900&display=swap');
-:root{color-scheme:dark;--ink:#f7fbff;--muted:#8190b9;--line:rgba(145,181,255,.18);--lime:#b8ff38;--cyan:#4be9ff;--pink:#ff4fa3;--panel:rgba(8,16,48,.82)}*{box-sizing:border-box}body{margin:0;background:#070c25;color:var(--ink);font-family:Nunito,sans-serif}.sky{position:fixed;inset:0;z-index:-1;background:radial-gradient(circle at 50% 18%,#23378b,transparent 30%),radial-gradient(circle at 10% 70%,#0bb8e633,transparent 24%),linear-gradient(#070c25,#05081a)}main{width:min(1240px,calc(100% - 28px));margin:auto}header{height:112px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line)}.kicker,.label{font:500 10px "DM Mono";letter-spacing:.16em;color:var(--cyan);margin:0}h1{font-size:36px;margin:4px 0}h1 span{color:var(--lime)}header nav{display:flex;background:#0a1236;border:1px solid var(--line);border-radius:9px;padding:4px}button,select,input{font-family:Nunito}header button{border:0;background:transparent;color:var(--muted);padding:10px 17px;border-radius:6px;font:800 10px "DM Mono";cursor:pointer}header button.active{background:#243573;color:#fff}.solo{display:grid;grid-template-columns:230px 386px 230px;justify-content:center;gap:38px;padding:38px 0 55px;align-items:start}.panel{padding-top:12px}.panel select{display:block;width:100%;margin:8px 0 17px;background:#101a4b;border:1px solid var(--line);color:#fff;border-radius:7px;padding:11px;font-weight:800}.panel .sub{display:block;margin-top:12px}.note{color:var(--muted);font-size:10px;min-height:28px}.score{border-top:1px solid var(--line);margin-top:20px;padding:20px 0}.score span,.metrics span,.decision span{display:block;color:var(--muted);font:9px "DM Mono";letter-spacing:.12em;margin-bottom:7px}.score strong{font:500 24px "DM Mono"}.metrics{display:grid;grid-template-columns:1fr 1fr;gap:14px}.metrics>div{border-top:1px solid var(--line);padding:14px 0}.metrics b{font:500 18px "DM Mono"}.decision{margin-top:20px;padding:16px;background:var(--panel);border:1px solid var(--line);border-radius:10px}.decision strong{display:block;font-size:12px}.decision small{color:var(--lime);font:9px "DM Mono"}.board-shell{position:relative;width:386px;padding:13px;background:linear-gradient(145deg,#3047a2,#111a50);border:1px solid #89b9ff59;border-radius:17px;box-shadow:0 30px 80px #0008}.board-top{height:27px;display:flex;justify-content:space-between;font:10px "DM Mono";color:#bcd1ff}.board-shell canvas{display:block;width:360px;height:720px;max-height:calc(100vh - 220px);max-width:calc((100vh - 220px)/2);background:#07102c;border-radius:6px}.chain-pop{position:absolute;left:50%;top:48%;transform:translate(-50%,-50%);font-size:48px;font-weight:900;font-style:italic;white-space:nowrap;text-shadow:4px 4px var(--pink),0 0 25px #fff}.chain-pop small{display:block;text-align:center;color:var(--lime);font:10px "DM Mono"}.controls{padding:16px;background:var(--panel);border:1px solid var(--line);border-radius:11px}.controls label{color:var(--muted);font:9px "DM Mono"}.controls input{display:block;width:100%;margin:8px 0 14px;padding:10px;background:#101a4b;border:1px solid var(--line);border-radius:6px}.controls button{width:100%;padding:11px;margin-top:8px;border:1px solid var(--line);border-radius:6px;background:transparent;color:var(--muted);font-weight:900;cursor:pointer}.controls .start{background:var(--lime);color:#142000;border:0}.trace{border-top:1px solid var(--line);padding:34px 0 70px}.trace h2{margin:5px 0 20px}.trace-row{display:grid;grid-template-columns:60px 1fr;margin:0;padding:10px;border-bottom:1px solid var(--line);color:var(--muted);font:11px "DM Mono"}.trace-row b{color:#fff}.battle-controls{max-width:420px;margin:25px auto}.battle-controls .controls{display:grid;grid-template-columns:1fr 1fr;gap:8px}.battle-controls label{grid-column:1/-1}.battle{display:grid;grid-template-columns:minmax(300px,1fr) 80px minmax(300px,1fr);gap:20px;align-items:center}.battle>div:not(.vs){display:grid;grid-template-columns:minmax(190px,230px) 386px;gap:20px;justify-content:center}.battle .board-shell{width:326px}.battle .board-shell canvas{width:300px;height:600px}.vs{text-align:center}.vs b{font-size:46px;font-style:italic;text-shadow:3px 3px var(--pink)}.vs strong{display:block;color:var(--lime);font-size:18px;margin-top:20px}
-@media(max-width:1100px){.battle{grid-template-columns:1fr 50px 1fr}.battle>div:not(.vs){display:block}.battle .panel{min-height:330px}.battle .board-shell{margin:auto}}@media(max-width:760px){header{height:88px}h1{font-size:24px}.solo{display:flex;flex-direction:column;align-items:center;padding-top:20px}.solo .panel,.solo>.controls{width:min(386px,100%)}.board-shell{width:min(386px,100%)}.board-shell canvas{width:100%;height:auto;max-width:none;max-height:none}.battle{grid-template-columns:1fr 28px 1fr;gap:4px}.battle .panel{min-height:360px}.battle .board-shell{width:100%;padding:5px}.battle .board-shell canvas{width:100%;height:auto}.vs b{font-size:22px}.vs strong{font-size:10px}.note{display:none}}
+@import url("https://fonts.googleapis.com/css2?family=DM+Mono:wght@500&family=Nunito:wght@700;800;900&display=swap");
+:root {
+  color-scheme: dark;
+  --ink: #f7fbff;
+  --muted: #8190b9;
+  --line: rgba(145, 181, 255, 0.18);
+  --lime: #b8ff38;
+  --cyan: #4be9ff;
+  --pink: #ff4fa3;
+  --panel: rgba(8, 16, 48, 0.82);
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: #070c25;
+  color: var(--ink);
+  font-family: Nunito, sans-serif;
+}
+.sky {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(circle at 50% 18%, #23378b, transparent 30%),
+    radial-gradient(circle at 10% 70%, #0bb8e633, transparent 24%),
+    linear-gradient(#070c25, #05081a);
+}
+main {
+  width: min(1240px, calc(100% - 28px));
+  margin: auto;
+}
+header {
+  height: 112px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--line);
+}
+.kicker,
+.label {
+  font: 500 10px "DM Mono";
+  letter-spacing: 0.16em;
+  color: var(--cyan);
+  margin: 0;
+}
+h1 {
+  font-size: 36px;
+  margin: 4px 0;
+}
+h1 span {
+  color: var(--lime);
+}
+header nav {
+  display: flex;
+  background: #0a1236;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  padding: 4px;
+}
+button,
+select,
+input {
+  font-family: Nunito;
+}
+header button {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  padding: 10px 17px;
+  border-radius: 6px;
+  font: 800 10px "DM Mono";
+  cursor: pointer;
+}
+header button.active {
+  background: #243573;
+  color: #fff;
+}
+.solo {
+  display: grid;
+  grid-template-columns: 230px 386px 230px;
+  justify-content: center;
+  gap: 38px;
+  padding: 38px 0 55px;
+  align-items: start;
+}
+.panel {
+  padding-top: 12px;
+}
+.panel select {
+  display: block;
+  width: 100%;
+  margin: 8px 0 17px;
+  background: #101a4b;
+  border: 1px solid var(--line);
+  color: #fff;
+  border-radius: 7px;
+  padding: 11px;
+  font-weight: 800;
+}
+.panel .sub {
+  display: block;
+  margin-top: 12px;
+}
+.note {
+  color: var(--muted);
+  font-size: 10px;
+  min-height: 28px;
+}
+.next {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 14px;
+  align-items: center;
+  padding: 13px 14px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.next > span {
+  color: var(--cyan);
+  font: 9px "DM Mono";
+  letter-spacing: .14em;
+}
+.next-pair {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.next-pair i {
+  width: 22px;
+  height: 22px;
+  border-radius: 48%;
+  box-shadow: inset 3px 3px 5px #fff8, 0 0 8px #0008;
+}
+.score {
+  border-top: 1px solid var(--line);
+  margin-top: 20px;
+  padding: 20px 0;
+}
+.score span,
+.metrics span,
+.decision span {
+  display: block;
+  color: var(--muted);
+  font: 9px "DM Mono";
+  letter-spacing: 0.12em;
+  margin-bottom: 7px;
+}
+.score strong {
+  font: 500 24px "DM Mono";
+}
+.metrics {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+.metrics > div {
+  border-top: 1px solid var(--line);
+  padding: 14px 0;
+}
+.metrics b {
+  font: 500 18px "DM Mono";
+}
+.decision {
+  margin-top: 20px;
+  padding: 16px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.decision strong {
+  display: block;
+  font-size: 12px;
+}
+.decision small {
+  color: var(--lime);
+  font: 9px "DM Mono";
+}
+.board-shell {
+  position: relative;
+  width: 386px;
+  padding: 13px;
+  background: linear-gradient(145deg, #3047a2, #111a50);
+  border: 1px solid #89b9ff59;
+  border-radius: 17px;
+  box-shadow: 0 30px 80px #0008;
+}
+.board-top {
+  height: 27px;
+  display: flex;
+  justify-content: space-between;
+  font: 10px "DM Mono";
+  color: #bcd1ff;
+}
+.board-shell canvas {
+  display: block;
+  width: 360px;
+  height: 720px;
+  max-height: calc(100vh - 220px);
+  max-width: calc((100vh - 220px) / 2);
+  background: #07102c;
+  border-radius: 6px;
+}
+.chain-pop {
+  position: absolute;
+  left: 50%;
+  top: 48%;
+  transform: translate(-50%, -50%);
+  font-size: 48px;
+  font-weight: 900;
+  font-style: italic;
+  white-space: nowrap;
+  text-shadow:
+    4px 4px var(--pink),
+    0 0 25px #fff;
+}
+.chain-pop small {
+  display: block;
+  text-align: center;
+  color: var(--lime);
+  font: 10px "DM Mono";
+}
+.controls {
+  padding: 16px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 11px;
+}
+.controls label {
+  color: var(--muted);
+  font: 9px "DM Mono";
+}
+.controls input {
+  display: block;
+  width: 100%;
+  margin: 8px 0 14px;
+  padding: 10px;
+  background: #101a4b;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+.controls button {
+  width: 100%;
+  padding: 11px;
+  margin-top: 8px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 900;
+  cursor: pointer;
+}
+.controls .start {
+  background: var(--lime);
+  color: #142000;
+  border: 0;
+}
+.trace {
+  border-top: 1px solid var(--line);
+  padding: 34px 0 70px;
+}
+.trace h2 {
+  margin: 5px 0 20px;
+}
+.trace-row {
+  display: grid;
+  grid-template-columns: 60px 1fr;
+  margin: 0;
+  padding: 10px;
+  border-bottom: 1px solid var(--line);
+  color: var(--muted);
+  font: 11px "DM Mono";
+}
+.trace-row b {
+  color: #fff;
+}
+.battle-controls {
+  max-width: 420px;
+  margin: 25px auto;
+}
+.battle-controls .controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.battle-controls label {
+  grid-column: 1/-1;
+}
+.battle {
+  display: grid;
+  grid-template-columns: minmax(300px, 1fr) 80px minmax(300px, 1fr);
+  gap: 20px;
+  align-items: center;
+}
+.battle > div:not(.vs) {
+  display: grid;
+  grid-template-columns: minmax(190px, 230px) 386px;
+  gap: 20px;
+  justify-content: center;
+}
+.battle .board-shell {
+  width: 326px;
+}
+.battle .board-shell canvas {
+  width: 300px;
+  height: 600px;
+}
+.vs {
+  text-align: center;
+}
+.vs b {
+  font-size: 46px;
+  font-style: italic;
+  text-shadow: 3px 3px var(--pink);
+}
+.vs strong {
+  display: block;
+  color: var(--lime);
+  font-size: 18px;
+  margin-top: 20px;
+}
+@media (max-width: 1100px) {
+  .battle {
+    grid-template-columns: 1fr 50px 1fr;
+  }
+  .battle > div:not(.vs) {
+    display: block;
+  }
+  .battle .panel {
+    min-height: 330px;
+  }
+  .battle .board-shell {
+    margin: auto;
+  }
+}
+@media (max-width: 760px) {
+  header {
+    height: 88px;
+  }
+  h1 {
+    font-size: 24px;
+  }
+  .solo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 20px;
+  }
+  .solo .panel,
+  .solo > .controls {
+    width: min(386px, 100%);
+  }
+  .board-shell {
+    width: min(386px, 100%);
+  }
+  .board-shell canvas {
+    width: 100%;
+    height: auto;
+    max-width: none;
+    max-height: none;
+  }
+  .battle {
+    grid-template-columns: 1fr 28px 1fr;
+    gap: 4px;
+  }
+  .battle .panel {
+    min-height: 360px;
+  }
+  .battle .board-shell {
+    width: 100%;
+    padding: 5px;
+  }
+  .battle .board-shell canvas {
+    width: 100%;
+    height: auto;
+  }
+  .vs b {
+    font-size: 22px;
+  }
+  .vs strong {
+    font-size: 10px;
+  }
+  .note {
+    display: none;
+  }
+}
