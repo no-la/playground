@@ -3,6 +3,7 @@ export const ROWS = 13;
 export const VISIBLE_ROWS = 12;
 export const COLORS = 4;
 export const EMPTY = -1;
+export const GARBAGE = 4;
 export const DEATH_ROW = 1;
 export const DEATH_COL = 2;
 const ROTATIONS = [[0,-1],[1,0],[0,1],[-1,0]];
@@ -62,13 +63,21 @@ export function applyGravity(board) {
 
 export function popGroups(board) {
   const seen=Array.from({length:ROWS},()=>Array(COLS).fill(false)); const groups=[];
-  for (let r=0;r<ROWS;r++) for (let c=0;c<COLS;c++) if (board[r][c]!==EMPTY&&!seen[r][c]) {
+  for (let r=0;r<ROWS;r++) for (let c=0;c<COLS;c++) if (board[r][c]!==EMPTY&&board[r][c]!==GARBAGE&&!seen[r][c]) {
     const color=board[r][c], stack=[[r,c]], group=[]; seen[r][c]=true;
     while(stack.length){const [y,x]=stack.pop();group.push([y,x]);for(const [dy,dx] of [[-1,0],[1,0],[0,-1],[0,1]]){const ny=y+dy,nx=x+dx;if(ny>=0&&ny<ROWS&&nx>=0&&nx<COLS&&!seen[ny][nx]&&board[ny][nx]===color){seen[ny][nx]=true;stack.push([ny,nx]);}}}
     if(group.length>=4) groups.push({color,cells:group});
   }
-  for(const group of groups) for(const [r,c] of group.cells) board[r][c]=EMPTY;
+  const adjacentGarbage=new Set();
+  for(const group of groups) for(const [r,c] of group.cells){board[r][c]=EMPTY;for(const[dy,dx]of[[-1,0],[1,0],[0,-1],[0,1]]){const y=r+dy,x=c+dx;if(y>=0&&y<ROWS&&x>=0&&x<COLS&&board[y][x]===GARBAGE)adjacentGarbage.add(`${y},${x}`);}}
+  for(const key of adjacentGarbage){const [r,c]=key.split(",").map(Number);board[r][c]=EMPTY;}
   return groups;
+}
+
+export function dropGarbage(input, count, seed = 1) {
+  const board=cloneBoard(input),random=mulberry32(seed>>>0);let remaining=Math.max(0,Math.floor(count));
+  while(remaining>0){const columns=[0,1,2,3,4,5].sort(()=>random()-.5);for(const col of columns){if(!remaining)break;let row=ROWS-1;while(row>=0&&board[row][col]!==EMPTY)row--;if(row<0)return {board,overflow:true,dropped:count-remaining};board[row][col]=GARBAGE;remaining--;}}
+  applyGravity(board);return {board,overflow:false,dropped:count};
 }
 
 export function resolveBoard(input) {
@@ -84,7 +93,7 @@ export function boardFeatures(board) {
   const heights=[];let holes=0,potential=0;
   for(let c=0;c<COLS;c++){let top=ROWS;for(let r=0;r<ROWS;r++)if(board[r][c]!==EMPTY){top=Math.min(top,r);for(let y=r+1;y<ROWS;y++)if(board[y][c]===EMPTY)holes++;break;}heights.push(ROWS-top);}
   const seen=Array.from({length:ROWS},()=>Array(COLS).fill(false));
-  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)if(board[r][c]!==EMPTY&&!seen[r][c]){let size=0;const color=board[r][c],stack=[[r,c]];seen[r][c]=true;while(stack.length){const[y,x]=stack.pop();size++;for(const[dy,dx]of[[-1,0],[1,0],[0,-1],[0,1]]){const ny=y+dy,nx=x+dx;if(ny>=0&&ny<ROWS&&nx>=0&&nx<COLS&&!seen[ny][nx]&&board[ny][nx]===color){seen[ny][nx]=true;stack.push([ny,nx]);}}}if(size<4)potential+=size*size;}
+  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)if(board[r][c]!==EMPTY&&board[r][c]!==GARBAGE&&!seen[r][c]){let size=0;const color=board[r][c],stack=[[r,c]];seen[r][c]=true;while(stack.length){const[y,x]=stack.pop();size++;for(const[dy,dx]of[[-1,0],[1,0],[0,-1],[0,1]]){const ny=y+dy,nx=x+dx;if(ny>=0&&ny<ROWS&&nx>=0&&nx<COLS&&!seen[ny][nx]&&board[ny][nx]===color){seen[ny][nx]=true;stack.push([ny,nx]);}}}if(size<4)potential+=size*size;}
   return {maxHeight:Math.max(...heights),holes,bumpiness:heights.slice(1).reduce((n,h,i)=>n+Math.abs(h-heights[i]),0),potential,gameOver:isGameOver(board)};
 }
 
@@ -138,4 +147,4 @@ export function chainPlannerMove(moves, futurePairs, depth = 8, width = 18) {
   const forecasts=forecastChains(moves,futurePairs,depth,width);
   return [...moves].sort((a,b)=>(forecasts.get(b.id)?.forecastValue??-1e9)-(forecasts.get(a.id)?.forecastValue??-1e9))[0];
 }
-export function boardToText(board) { return board.slice(1).map(row => row.map(v => v===EMPTY?".":"RGBY"[v]).join("")).join("\n"); }
+export function boardToText(board) { return board.slice(1).map(row => row.map(v => v===EMPTY?".":"RGBYO"[v]).join("")).join("\n"); }
