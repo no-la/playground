@@ -1,0 +1,17 @@
+:root { font-family: system-ui, sans-serif; color: #172d32; background: #f2f6f3; line-height: 1.7; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+main { max-width: 680px; margin: 0 auto; padding: 52px 24px; }
+.eyebrow { color: #326c60; font-size: 12px; letter-spacing: .15em; font-weight: 700; }
+h1 { font-size: clamp(30px, 6vw, 44px); line-height: 1.35; letter-spacing: -.03em; }
+h2 { margin-top: 0; }
+section { background: #fff; border: 1px solid #d7e2da; border-radius: 20px; padding: 28px; margin: 28px 0; box-shadow: 0 12px 35px #193c2910; }
+label, small { display: block; }
+input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #8a9f95; border-radius: 8px; font: inherit; }
+button { width: 100%; padding: 13px; margin-top: 16px; border: 1px solid #205e50; border-radius: 9px; background: #205e50; color: white; font: inherit; font-weight: 600; cursor: pointer; }
+.secondary { background: white; color: #205e50; }
+button:disabled { opacity: .5; cursor: wait; }
+:focus-visible { outline: 3px solid #dc9d37; outline-offset: 3px; }
+[hidden] { display: none; }
+#status { font-size: 14px; margin-bottom: 0; overflow-wrap: anywhere; }
+.note, small { color: #52685e; font-size: 13px; }

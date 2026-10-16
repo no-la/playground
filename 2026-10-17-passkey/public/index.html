@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Passkey Lab</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/vendor/webauthn.js" defer></script>
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <main>
+    <p class="eyebrow">LOCAL EXPERIMENT / WEBAUTHN</p>
+    <h1>パスワードのない<br>ログインを試そう。</h1>
+    <p>指紋・顔認証・端末のPINで認証。秘密鍵は認証器が管理し、サーバーは公開鍵で署名を検証します。</p>
+    <section aria-labelledby="account-title">
+      <h2 id="account-title">Passkey Lab</h2>
+      <p id="account">ログイン状態を確認中…</p>
+      <form id="register-form">
+        <label for="username">新しく登録するユーザー名</label>
+        <input id="username" name="username" autocomplete="username" placeholder="例: nola" pattern="[a-zA-Z0-9_-]{1,32}" maxlength="32" required aria-describedby="username-help">
+        <small id="username-help">英数字・_・- の1〜32文字</small>
+        <button type="submit">パスキーを登録</button>
+      </form>
+      <button id="login" class="secondary">パスキーでログイン</button>
+      <button id="logout" class="secondary" hidden>ログアウト</button>
+      <p id="status" role="status" aria-live="polite">登録後、ログアウトしてログインを試してください。</p>
+    </section>
+    <p class="note">localhost専用・メモリ保存のデモです。サーバーを再起動するとアカウントは消えます。端末に保存したパスキーは残るため、不要になったらパスワード管理画面で削除してください。</p>
+  </main>
+</body>
+</html>
